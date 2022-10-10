@@ -22,7 +22,7 @@ namespace WebApi.Controllers
         {
             var works = await _repo.GetManyAsync(companyId, orderId);
             return works.Select(e => new WorksDto(e.Id, e.Type, e.Description, e.CreationDate,
-                e.ModifiedDate, e.StartDateTime, e.EndDateTime, e.IsPaused));
+                e.ModifiedDate, e.StartDateTime, e.EndDateTime, e.IsPaused, e.ProductionOrder.Id));
         }
 
         [HttpGet]
@@ -38,7 +38,7 @@ namespace WebApi.Controllers
                 return NotFound();
 
             return new WorksDto(work.Id, work.Type, work.Description, work.CreationDate,
-                work.ModifiedDate, work.StartDateTime, work.EndDateTime, work.IsPaused);
+                work.ModifiedDate, work.StartDateTime, work.EndDateTime, work.IsPaused, work.ProductionOrder.Id);
         }
 
         [HttpPost]
@@ -65,7 +65,7 @@ namespace WebApi.Controllers
 
             //201
             return Created("", new WorksDto(work.Id, work.Type, work.Description, work.CreationDate,
-                work.ModifiedDate, work.StartDateTime, work.EndDateTime, work.IsPaused));
+                work.ModifiedDate, work.StartDateTime, work.EndDateTime, work.IsPaused, work.ProductionOrder.Id));
         }
 
         [HttpPut]
@@ -91,7 +91,7 @@ namespace WebApi.Controllers
             await _repo.UpdateAsync(work);
 
             return Ok(new WorksDto(work.Id, work.Type, work.Description, work.CreationDate,
-                work.ModifiedDate, work.StartDateTime, work.EndDateTime, work.IsPaused));
+                work.ModifiedDate, work.StartDateTime, work.EndDateTime, work.IsPaused, work.ProductionOrder.Id));
         }
 
         [Route("{workId}")]

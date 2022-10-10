@@ -22,6 +22,7 @@ namespace WebApi.Data.Repositories
         public async Task<Work?> GetAsync(int? workId, int? orderId, int? companyId)
         {
             return await _context.Works
+                .Include(e => e.ProductionOrder)
                 .FirstOrDefaultAsync(e => e.ProductionOrder.Company.Id == companyId && e.ProductionOrder.Id == orderId && e.Id == workId);
         }
 
@@ -29,6 +30,7 @@ namespace WebApi.Data.Repositories
         {
             return await _context.Works
                 .AsNoTracking()
+                .Include(e => e.ProductionOrder)
                 .Where(e => e.ProductionOrder.Id == orderId && e.ProductionOrder.Company.Id == companyId)
                 .ToListAsync();
         }

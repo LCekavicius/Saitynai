@@ -20,7 +20,7 @@ namespace WebApi.Controllers
         {
             var works = await _repo.GetAllCompanyWorks(companyId);
             return works.Select(e => new WorksDto(e.Id, e.Type, e.Description, e.CreationDate,
-                e.ModifiedDate, e.StartDateTime, e.EndDateTime, e.IsPaused));
+                e.ModifiedDate, e.StartDateTime, e.EndDateTime, e.IsPaused, e.ProductionOrder.Id));
         }
         [HttpGet]
         public async Task<IEnumerable<CompanyDto>> GetMany()

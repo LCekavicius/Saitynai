@@ -22,7 +22,7 @@ namespace WebApi.Controllers
         {
             var productionOrders = await _repo.GetManyAsync(companyId);
             return productionOrders.Select(e => new ProductionOrderDto(e.Id, e.ProductName, e.CreationDate,
-                    e.ModifiedDate,e .StartDateTime, e.EndDateTime));
+                    e.ModifiedDate,e .StartDateTime, e.EndDateTime, e.Company.Id));
         }
 
         [HttpGet]
@@ -39,7 +39,7 @@ namespace WebApi.Controllers
 
             return new ProductionOrderDto(productionOrder.Id, productionOrder.ProductName,
                 productionOrder.CreationDate, productionOrder.ModifiedDate,
-                productionOrder.StartDateTime, productionOrder.EndDateTime);
+                productionOrder.StartDateTime, productionOrder.EndDateTime, productionOrder.Company.Id);
         }
 
         [HttpPost]
@@ -65,7 +65,7 @@ namespace WebApi.Controllers
             //201
             return Created("", new ProductionOrderDto(productionOrder.Id, productionOrder.ProductName,
                 productionOrder.CreationDate, productionOrder.ModifiedDate,
-                productionOrder.StartDateTime, productionOrder.EndDateTime));
+                productionOrder.StartDateTime, productionOrder.EndDateTime, productionOrder.Company.Id));
         }
 
         [HttpPut]
@@ -89,7 +89,7 @@ namespace WebApi.Controllers
 
             return Ok(new ProductionOrderDto(productionOrder.Id, productionOrder.ProductName,
                 productionOrder.CreationDate, productionOrder.ModifiedDate,
-                productionOrder.StartDateTime, productionOrder.EndDateTime));
+                productionOrder.StartDateTime, productionOrder.EndDateTime, productionOrder.Company.Id));
         }
 
         [Route("{orderId}")]

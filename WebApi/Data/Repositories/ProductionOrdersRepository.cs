@@ -29,6 +29,7 @@ namespace WebApi.Data.Repositories
         public async Task<IReadOnlyList<ProductionOrder>> GetManyAsync(int? companyId)
         {
             return await _context.ProductionOrders
+                .Include(e => e.Company)
                 .AsNoTracking()
                 .Where(e => companyId.HasValue ? e.Company.Id == companyId : true)
                 .ToListAsync();
