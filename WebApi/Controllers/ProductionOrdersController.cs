@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using WebApi.Auth.Model;
 using WebApi.Data.Dtos;
 using WebApi.Data.Entities;
 using WebApi.Data.Repositories;
@@ -11,16 +13,24 @@ namespace WebApi.Controllers
     {
         private readonly IProductionOrdersRepository _repo;
         private readonly ICompaniesRepository _companiesRepo;
-        public ProductionOrdersController(IProductionOrdersRepository repo, ICompaniesRepository _companiesRepo)
+        private readonly IAuthorizationService _authorizationService;
+        public ProductionOrdersController(IProductionOrdersRepository repo, ICompaniesRepository _companiesRepo, IAuthorizationService authorizationService)
         {
             this._repo = repo;
             this._companiesRepo = _companiesRepo;
+            this._authorizationService = authorizationService;
         }
 
         [HttpGet]
         public async Task<IEnumerable<ProductionOrderDto>> GetMany(int? companyId)
         {
             var productionOrders = await _repo.GetManyAsync(companyId);
+
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, companyId, PolicyNames.CompanyEmployee);
+
+            if (!authorizationResult.Succeeded)
+                return null;
+
             return productionOrders.Select(e => new ProductionOrderDto(e.Id, e.ProductName, e.CreationDate,
                     e.ModifiedDate,e .StartDateTime, e.EndDateTime, e.Company.Id));
         }
@@ -37,18 +47,30 @@ namespace WebApi.Controllers
             if (productionOrder is null)
                 return NotFound();
 
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, companyId, PolicyNames.CompanyEmployee);
+
+            if (!authorizationResult.Succeeded)
+                return Forbid();
+
+
             return new ProductionOrderDto(productionOrder.Id, productionOrder.ProductName,
                 productionOrder.CreationDate, productionOrder.ModifiedDate,
                 productionOrder.StartDateTime, productionOrder.EndDateTime, productionOrder.Company.Id);
         }
 
         [HttpPost]
+        [Authorize(Roles = ERPRoles.Representative)]
         public async Task<ActionResult<ProductionOrderDto>> Create(int companyId, CreateProductionOrderDto createProductionOrderDto)
         {
             var company = await _companiesRepo.GetAsync(companyId);
 
             if (company is null)
                 return NotFound($"Couldnt find a company with id {companyId}");
+
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, companyId, PolicyNames.CompanyEmployee);
+
+            if (!authorizationResult.Succeeded)
+                return Forbid();
 
             var productionOrder = new ProductionOrder
             {
@@ -70,6 +92,7 @@ namespace WebApi.Controllers
 
         [HttpPut]
         [Route("{orderId}")]
+        [Authorize(Roles = ERPRoles.Representative)]
         public async Task<ActionResult<ProductionOrderDto>> Update(int? companyId, int? orderId,
             UpdateProductionOrderDto updateProductionOrderDto)
         {
@@ -80,6 +103,11 @@ namespace WebApi.Controllers
 
             if (productionOrder is null)
                 return NotFound();
+
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, companyId, PolicyNames.CompanyEmployee);
+
+            if (!authorizationResult.Succeeded)
+                return Forbid();
 
             productionOrder.ProductName = updateProductionOrderDto.productName;
             productionOrder.ModifiedDate = DateTime.UtcNow;
@@ -94,6 +122,7 @@ namespace WebApi.Controllers
 
         [Route("{orderId}")]
         [HttpDelete]
+        [Authorize(Roles = ERPRoles.Representative)]
         public async Task<ActionResult> Delete(int? companyId, int? orderId)
         {
             if (companyId is null || orderId is null)
@@ -103,6 +132,11 @@ namespace WebApi.Controllers
 
             if(order is null)
                 return NotFound();
+
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, companyId, PolicyNames.CompanyEmployee);
+
+            if (!authorizationResult.Succeeded)
+                return Forbid();
 
             await _repo.DeleteAsync(order);
 

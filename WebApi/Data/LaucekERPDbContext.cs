@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using WebApi.Auth.Model;
 using WebApi.Data.Entities;
 
 namespace WebApi.Data
 {
-    public class LaucekERPDbContext : DbContext
+    public class LaucekERPDbContext : IdentityDbContext<ERPUser>
     {
         public DbSet<Company> Companies { get; set; }
         public DbSet<ProductionOrder> ProductionOrders { get; set; }
