@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Auth;
 using WebApi.Auth.Model;
@@ -19,6 +20,7 @@ namespace WebApi.Controllers
 
         [HttpPost]
         [Route("registerworker")]
+        [Authorize(Roles = ERPRoles.Representative)]
         public async Task<IActionResult> RegisterWorker(RegisterUserDto registerUserDto)
         {
             var user = await _userManager.FindByNameAsync(registerUserDto.UserName);
@@ -44,6 +46,7 @@ namespace WebApi.Controllers
 
         [HttpPost]
         [Route("registerrepresentative")]
+        [Authorize(Roles = ERPRoles.Admin)]
         public async Task<IActionResult> RegisterRepresentative(RegisterUserDto registerUserDto)
         {
             var user = await _userManager.FindByNameAsync(registerUserDto.UserName);
