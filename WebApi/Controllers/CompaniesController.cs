@@ -42,10 +42,16 @@ namespace WebApi.Controllers
 
         [HttpGet]
         [Route("{companyId}")]
-        [Authorize(Roles = ERPRoles.Admin)]
+        [Authorize(Roles = ERPRoles.Admin + "," + ERPRoles.Representative)]
         public async Task<ActionResult<CompanyDto>> Get(int companyId)
         {
             var company = await _repo.GetAsync(companyId);
+
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, companyId, PolicyNames.CompanyEmployee);
+
+            if (!authorizationResult.Succeeded)
+                return null;
+
 
             if (company is null)
                 return NotFound();
