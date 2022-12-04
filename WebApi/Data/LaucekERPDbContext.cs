@@ -14,7 +14,9 @@ namespace WebApi.Data
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             //optionsBuilder.UseSqlServer("Data Source=(localdb)\\MSSQLLocalDB; Initial Catalog= laucekErp");
-            optionsBuilder.UseSqlServer("Server=tcp:saitynaidbktu.database.windows.net,1433;Initial Catalog=SaitynaiDb;Persist Security Info=False;User ID=saitynuadmin1;Password=Saitynai1;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;");
+            //optionsBuilder.UseSqlServer("Server=tcp:saitynaidbktu.database.windows.net,1433;Initial Catalog=SaitynaiDb;Persist Security Info=False;User ID=saitynuadmin1;Password=Saitynai1;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;");
+            optionsBuilder.UseSqlServer("Server=tcp:saitynaiserver.database.windows.net,1433;Initial Catalog=SaitynaiDbNew;Persist Security Info=False;User ID=saitynaiAdmin;Password=Slaptazodis1!;MultipleActiveResultSets=False;Encrypt=False;TrustServerCertificate=False;Connection Timeout=30;");
+       
         }
     }
 }
