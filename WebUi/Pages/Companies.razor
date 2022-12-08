@@ -1,0 +1,189 @@
+﻿@page "/companies"
+@using WebApi.Data.Dtos;
+@using WebUi.Data.Services.UserService;
+
+@inject ICompanyService companyService;
+
+@attribute [Authorize(Roles = "Admin")]
+
+<PageTitle>Companies </PageTitle>
+@if (isShowingInsertPopOver)
+{
+    <MudPopover AnchorOrigin="@Origin.CenterCenter" TransformOrigin="Origin.CenterCenter" Open="@isShowingInsertPopOver" Fixed="true" Class="px-4 pt-4">
+        <div class="d-flex flex-column">
+            <MudText>Insert company</MudText>
+            <MudText>Company Name:</MudText>
+            <MudInputString @bind-Value="companyName"></MudInputString>
+            <MudButton OnClick="@CreateCompany" Class="ml-auto mr-n3 mb-1" Disabled="@(companyName == null || companyName.Length < 3)" Color="Color.Success">Create</MudButton>
+            <MudButton OnClick="@ToggleInsertPopOver" Class="ml-auto mr-n3 mb-1" Color="Color.Error">Close</MudButton>
+        </div>
+    </MudPopover>
+}
+
+@if (isShowingEditPopOver)
+{
+    <MudPopover AnchorOrigin="@Origin.CenterCenter" TransformOrigin="Origin.CenterCenter" Open="@isShowingEditPopOver" Fixed="true" Class="px-4 pt-4">
+        <div class="d-flex flex-column">
+            <MudText>Insert company</MudText>
+            <MudText>Company Name:</MudText>
+            <MudInputString @bind-Value="companyName"></MudInputString>
+            <MudButton OnClick="@EditCompany" Class="ml-auto mr-n3 mb-1" Disabled="@(companyName == null || companyName.Length < 3)" Color="Color.Success">Change</MudButton>
+            <MudButton OnClick="@ToggleEditPopOver" Class="ml-auto mr-n3 mb-1" Color="Color.Error">Close</MudButton>
+        </div>
+    </MudPopover>
+}
+
+@if (isShowingDeletePopOver)
+{
+    <MudPopover AnchorOrigin="@Origin.CenterCenter" TransformOrigin="Origin.CenterCenter" Open="@isShowingDeletePopOver" Fixed="true" Class="px-4 pt-4">
+        <div class="d-flex flex-column">
+            <MudText>Delete Company</MudText>
+            <MudButton OnClick="@DeleteCompany" Class="ml-auto mr-n3 mb-1" Color="Color.Success">Delete</MudButton>
+            <MudButton OnClick="@ToggleDeletePopOver" Class="ml-auto mr-n3 mb-1" Color="Color.Error">Close</MudButton>
+        </div>
+    </MudPopover>
+}
+
+
+
+<MudButton Color="Color.Secondary" Class="z-0" Variant="Variant.Filled" @onclick="() => ToggleInsertPopOver()" Style="margin:5px">Insert</MudButton>
+<MudButton Color="Color.Secondary" Class="z-0" Disabled="selectedCompany == null" Variant="Variant.Filled" @onclick="() => ToggleEditPopOver()" Style="margin:5px">Edit</MudButton>
+<MudButton Color="Color.Secondary" Class="z-0" Disabled="selectedCompany == null" Variant="Variant.Filled" @onclick="() => ToggleDeletePopOver()" Style="margin:5px">Delete</MudButton>
+
+<style>
+    .selected {
+        background-color: #1E88E5 !important;
+    }
+
+        .selected > td {
+            color: white !important;
+        }
+
+            .selected > td .mud-input {
+                color: white !important;
+            }
+</style>
+
+<MudTable Items="@CompanyList.OrderBy(e => e.Creationdate)" Hover="true" Breakpoint="Breakpoint.Sm" @ref="mudTable"
+          RowClassFunc="@SelectedRowClassFunc" OnRowClick="OnRowClicked" T="CompanyDto">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Companies</MudText>
+        <MudSpacer />
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Company Id</MudTh>
+        <MudTh>Company Name</MudTh>
+        <MudTh>Member Since</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTh>@context.Id</MudTh>
+        <MudTh>@context.name</MudTh>
+        <MudTh>@context.Creationdate</MudTh>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    List<CompanyDto> CompanyList { get; set; } = new List<CompanyDto>();
+    bool isShowingInsertPopOver = false;
+    bool isShowingEditPopOver = false;
+    bool isShowingDeletePopOver = false;
+    string companyName { get; set; } = "";
+    int selectedRowNumber { get; set; } = -1;
+    private MudTable<CompanyDto> mudTable;
+
+    CompanyDto selectedCompany { get; set; }
+
+    bool rowClicked { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCompanies();
+    }
+
+    protected async Task LoadCompanies()
+    {
+        this.CompanyList = (await companyService.GetCompanies()).Data;
+    }
+
+    protected void ToggleInsertPopOver()
+    {
+        isShowingInsertPopOver = !isShowingInsertPopOver;
+    }
+    protected void ToggleEditPopOver()
+    {
+        companyName = selectedCompany.name;
+        isShowingEditPopOver = !isShowingEditPopOver;
+    }
+    protected void ToggleDeletePopOver()
+    {
+        isShowingDeletePopOver = !isShowingDeletePopOver;
+    }
+
+    protected async Task DeleteCompany()
+    {
+        await companyService.DeleteCompany(selectedCompany.Id);
+        CompanyList.RemoveAll(e => e.Id.Equals(selectedCompany.Id));
+        StateHasChanged();
+        isShowingDeletePopOver = false;
+    }
+
+    protected async Task EditCompany()
+    {
+        UpdateCompanyDto cmd = new UpdateCompanyDto(companyName);
+        var updatedCompany = await companyService.UpdateCompany(selectedCompany.Id, cmd);
+        CompanyList[CompanyList.IndexOf(selectedCompany)] = updatedCompany.Data;
+        StateHasChanged();
+        isShowingEditPopOver = false;
+    }
+
+    protected async Task CreateCompany()
+    {
+        CreateCompanyDto cmd = new CreateCompanyDto(companyName);
+        var newCompany = await companyService.InsertCompany(cmd);
+        CompanyList.Add(newCompany.Data);
+        isShowingInsertPopOver = false;
+        StateHasChanged();
+    }
+
+    private void OnRowClicked(TableRowClickEventArgs<CompanyDto> p)
+    {
+        rowClicked = true;
+        if (mudTable != null && mudTable.SelectedItem != null && selectedCompany != null && mudTable.SelectedItem.Id == selectedCompany.Id)
+        {
+            selectedCompany = null;
+            return;
+        }
+        selectedCompany = mudTable.SelectedItem;
+    }
+
+    private string SelectedRowClassFunc(CompanyDto element, int rowNumber)
+    {
+        if (!rowClicked)
+        {
+            if (selectedRowNumber == rowNumber)
+                return "selected";
+            return string.Empty;
+        }
+
+        if (rowNumber + 1 == CompanyList.Count)
+            rowClicked = false;
+
+        if (selectedRowNumber == rowNumber)
+        {
+            selectedRowNumber = -1;
+            return string.Empty;
+        }
+        else if (mudTable.SelectedItem != null && mudTable.SelectedItem.Equals(element))
+        {
+            selectedRowNumber = rowNumber;
+            return "selected";
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+}

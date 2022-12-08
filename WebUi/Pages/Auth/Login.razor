@@ -1,0 +1,89 @@
+﻿@page "/login"
+@using WebApi.Auth.Model
+@using WebUi.Data.Services.ToastService;
+@using WebUi.Data.Services.UserService
+
+@inject NavigationManager navigation
+@inject IAuthService authService
+@inject ToastService toastService
+
+<MudContainer Class="mt-12" MaxWidth="MaxWidth.Small">
+    <MudPaper Elevation="2" Class="pa-4" Style="height: 400px;">
+    <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Login</MudText>
+        <MudGrid Spacing="6" Class="@GetClassString()">
+        <MudItem xs="12">
+            @if (popOverVisible)
+            {
+                foreach (var item in messagesForPopOver)
+                {
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.h5" Class="pa-4 mud-secondary-text" Align="Align.Center" GutterBottom="true">@item</MudText>
+                    </MudItem>
+                }
+            }
+            <MudText Typo="Typo.h5" GutterBottom="true">Your information</MudText>
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField T="string" InputType="InputType.Text" @bind-Value="_userName" Label="User Name" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField T="string" InputType="InputType.Password" @bind-Value="_password" Label="Password" />
+                </MudItem>
+                <MudItem xs="12" Class="d-flex justify-center">
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@(async () => await LoginUser())">Login</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudItem>
+
+        </MudGrid>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [CascadingParameter]
+    public MainLayout mainLayout { get; set; }
+    private string _userName { get; set; }
+    private string _password { get; set; }
+    bool spinnerVisible { get; set; } = false;
+    bool popOverVisible { get; set; } = false;
+    List<string> messagesForPopOver { get; set; } = new List<string>();
+    protected async Task LoginUser()
+    {
+        mainLayout.SetProgressBarState(true);
+        var dto = await authService.Login(new LoginDto(_userName, _password));
+        mainLayout.SetProgressBarState(false);
+        if (!dto.IsSuccessful)
+        {
+            ShowPopOver(true, dto.Messages);
+            return;
+        }
+        navigation.NavigateTo("/");
+    }
+
+    private void NavigateToRegister()
+    {
+        navigation.NavigateTo("/register");
+    }
+
+    private string GetClassString()
+    {
+        return $"mt-{(2 + messagesForPopOver.Count) * 8}";
+    }
+
+    private void ShowPopOver(bool state, List<string> messages)
+    {
+        popOverVisible = state;
+        this.messagesForPopOver = messages;
+    }
+
+    protected bool UserIsValid()
+    {
+        return true;
+    }
+    protected void ToggleSpinner()
+    {
+        spinnerVisible = !spinnerVisible;
+        mainLayout.SetProgressBarState(spinnerVisible);
+    }
+}

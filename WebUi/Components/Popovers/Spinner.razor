@@ -1,0 +1,29 @@
+﻿@using WebUi.Data.Services.ToastService;
+@inject ToastService toastService
+
+@if (isSpinnerVisible)
+{
+    if (preventUserActions)
+    {
+        <div class="spinner-action-prevention-wrapper">
+        </div>
+    }
+    <div class="spinner"></div>
+}
+
+@code {
+    bool isSpinnerVisible;
+    bool preventUserActions;
+
+    protected override void OnInitialized()
+    {
+        //toastService.InitializeSpinner(this);
+    }
+
+    internal void ShowSpinner(bool showSpinner, bool preventUserActions)
+    {
+        isSpinnerVisible = showSpinner;
+        this.preventUserActions = preventUserActions;
+        InvokeAsync(StateHasChanged);
+    }
+}

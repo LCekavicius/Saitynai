@@ -41,7 +41,6 @@ namespace WebApi.Auth
                     claims: authClaims,
                     signingCredentials: new SigningCredentials(_authSigningKey, SecurityAlgorithms.HmacSha256)
                 );
-
             return new JwtSecurityTokenHandler().WriteToken(_accessSecurityToken);
         }
     }

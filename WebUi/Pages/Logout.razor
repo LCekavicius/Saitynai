@@ -1,0 +1,14 @@
+﻿@page "/Logout"
+@using WebUi.Auth;
+
+@inject AuthenticationStateProvider authStateProvider;
+@inject NavigationManager navigationManager
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ((ErpStateProvider)authStateProvider).LogOut();
+        navigationManager.NavigateTo("/");
+    }
+}

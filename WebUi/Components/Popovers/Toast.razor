@@ -1,0 +1,22 @@
+﻿@using WebUi.Data.Enums;
+@using WebUi.Data.Services.ToastService;
+@inherits ToastBase
+@if (IsVisible == true)
+{
+        <div class="modal" tabindex="-1" style="display:block">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>@Heading</h2>
+                </div>
+                <div class="modal-body">
+                    @Message
+                </div>
+
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HideToast">Confirm</MudButton>
+                @*TODO CANCEL BUTTON/CONFIRMATION TOAST*@
+                @*<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="RegisterUser">Register</MudButton>*@
+            </div>
+        </div>
+    </div>
+}

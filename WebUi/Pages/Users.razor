@@ -1,0 +1,176 @@
+﻿@page "/createuser"
+@using WebApi.Auth.Model;
+@using WebApi.Data.Dtos;
+@using WebUi.Auth;
+@using WebUi.Data.Services.UserService;
+
+@attribute [Authorize(Roles = "Admin,Representative")]
+
+@inject IAuthService authService
+@inject AuthenticationStateProvider authStateProvider
+@inject ICompanyService companyService
+
+<MudContainer Class="mt-12" MaxWidth="MaxWidth.Small">
+    <MudPaper Elevation="2" Class="pa-4" Style="height: 600;">
+    <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Create User</MudText>
+        <MudGrid Spacing="6" Class="@GetClassString()">
+            
+        <MudItem xs="12">
+            @if (popOverVisible)
+            {
+                foreach (var item in messagesForPopOver)
+                {
+                    <MudItem xs="12">
+                            <MudText Typo="Typo.h5" Class="@($"pa-4 {GetTextColor()}-text")" Align="Align.Center" GutterBottom="true">@item</MudText>
+                    </MudItem>
+                }
+            }
+                <MudText Typo="Typo.h5" GutterBottom="true">@($"{type}'s") information</MudText>
+            <MudGrid>
+                @if(companies != null)
+                {
+                    <AuthorizeView Roles="Admin">
+                        <MudItem xs="12">
+                                <MudSelect T="CompanyDto" @bind-Value="@selectedCompanyDto" AnchorOrigin="Origin.BottomCenter" Variant="Variant.Filled">
+                            @foreach (var item in companies)
+                            {
+                                <MudSelectItem Value="@(item)"></MudSelectItem>
+                            }
+                            </MudSelect>
+                        </MudItem>
+                    </AuthorizeView>
+                }
+                <MudItem xs="12">
+                    <MudTextField T="string" InputType="InputType.Text" @bind-Value="_userName" Label="User Name" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField T="string" InputType="InputType.Email" @bind-Value="_email" Label="Email" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField T="string" InputType="InputType.Password" @bind-Value="_password" Label="Password" />
+                </MudItem>
+                <MudItem xs="12">
+                            <MudTextField T="string" InputType="InputType.Password" @bind-Value="_confirmPassword" Label="Confirm Password" />
+                </MudItem>
+                <MudItem xs="12" Class="d-flex justify-center">
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@(async () => await RegisterUser())">Create</MudButton>
+                </MudItem>
+                
+            </MudGrid>
+        </MudItem>
+
+        </MudGrid>
+    </MudPaper>
+</MudContainer>
+
+
+@code {
+    [CascadingParameter]
+    public MainLayout mainLayout { get; set; }
+    private string _userName { get; set; } = string.Empty;
+    private string _password { get; set; } = string.Empty;
+    private string _confirmPassword { get; set; } = string.Empty;
+    private string _email { get; set; } = string.Empty;
+    int? _companyId { get; set; }
+    bool spinnerVisible { get; set; } = false;
+
+    List<string> messagesForPopOver { get; set; } = new List<string>();
+    bool isCreatingWorker = true;
+    string type = "Worker";
+    bool popOverVisible { get; set; } = false;
+
+    CompanyDto selectedCompanyDto { get; set; } = null;
+
+    List<CompanyDto> companies { get; set; }
+
+    bool isSuccess = false;
+
+    string GetTextColor()
+    {
+        return isSuccess ? "green" : "red";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userState = await ((ErpStateProvider)authStateProvider).GetAuthenticationStateAsync();
+        if (userState.User.IsInRole("Admin"))
+        {
+            isCreatingWorker = false;
+            type = "Representative";
+        }
+        companies = (await companyService.GetCompanies()).Data;
+        StateHasChanged();
+    }
+
+    private void SetCreationType()
+    {
+        isCreatingWorker = false;
+        type = "Representative";
+    }
+
+    private void ShowPopOver(bool state, List<string> messages)
+    {
+        popOverVisible = state;
+        this.messagesForPopOver = messages;
+    }
+
+    private string GetClassString()
+    {
+        return $"mt-{(4 + messagesForPopOver.Count) * 8}";
+    }
+
+    protected void ToggleSpinner()
+    {
+        spinnerVisible = !spinnerVisible;
+        mainLayout.SetProgressBarState(spinnerVisible);
+    }
+
+    private async Task RegisterUser()
+    {
+        isSuccess = false;
+        if (_userName == "" || _password == "" || _confirmPassword == "" || _email == "" || (selectedCompanyDto == null && isCreatingWorker == false))
+        {
+            ShowPopOver(true, new List<string> { "You have to fill in all of the fields." });
+            return;
+        }
+
+        if(!_password.Equals(_confirmPassword))
+        {
+            ShowPopOver(true, new List<string> { "Password mismatch" });
+            return;
+        }
+
+        if (!_password.Any(e => char.IsUpper(e)))
+        {
+            ShowPopOver(true, new List<string> { "Password Requires an uppercase letter" });
+            return;
+        }
+
+        if (!_password.Any(e => char.IsDigit(e)))
+        {
+            ShowPopOver(true, new List<string> { "Password Requires a number" });
+            return;
+        }
+
+        ToggleSpinner();
+
+        RegisterUserDto dto = new RegisterUserDto(_userName, _email, _password, selectedCompanyDto.Id);
+        var result = await authService.Register(dto, isCreatingWorker);
+        ToggleSpinner();
+        if(!result.IsSuccessful)
+        {
+            ShowPopOver(true, result.Messages);
+            return;
+        }
+
+        _userName = string.Empty;
+        _email = string.Empty;
+        _password = string.Empty;
+        _confirmPassword = string.Empty;
+        selectedCompanyDto = null;
+
+        ShowPopOver(true, new List<string> { "Successfully created user" });
+        isSuccess = true;
+        StateHasChanged();
+    }
+}

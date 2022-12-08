@@ -1,0 +1,12 @@
+﻿<MudNavMenu>
+    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+    <AuthorizeView Roles="Admin,Representative">
+        <MudNavLink Href="createuser" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.People">Add Users</MudNavLink>
+    </AuthorizeView>
+    <AuthorizeView Roles="Admin">
+        <MudNavLink Href="Companies" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Business">Companies</MudNavLink>
+    </AuthorizeView>
+    <AuthorizeView>
+        <MudNavLink Href="logout" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Logout">Log out</MudNavLink>
+    </AuthorizeView>
+</MudNavMenu>

@@ -1,0 +1,53 @@
+﻿@using WebUi.Auth;
+@inherits LayoutComponentBase
+
+@inject AuthenticationStateProvider stateProvider
+
+<MudThemeProvider IsDarkMode=true/>
+<MudDialogProvider />
+<MudSnackbarProvider />
+<WebUi.Components.Popovers.Toast/>
+<MudLayout>
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="1">
+        <MudDrawerHeader>
+            <MudText Typo="Typo.h6">WebUi</MudText>
+        </MudDrawerHeader>
+        <NavMenu />
+    </MudDrawer>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Large" Class="my-16 pt-16">
+            <CascadingValue Value="this">
+                @Body
+            </CascadingValue>
+        </MudContainer>
+    </MudMainContent>
+    
+</MudLayout>
+@if (isProgressBarOpen)
+{
+    <div style="margin-top:300px">
+        <MudProgressLinear Color="Color.Secondary" Indeterminate="true" Class="my-7" />
+    </div>
+}
+
+@code {
+    bool _drawerOpen = true;
+    private bool isProgressBarOpen { get; set; } = false;
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+    public void SetProgressBarState(bool state)
+    {
+        isProgressBarOpen = state;
+        StateHasChanged();
+    }
+
+    public async Task<string> GetCompanyText()
+    {
+        var state = await ((ErpStateProvider)stateProvider).GetAuthenticationStateAsync();
+        //state.User.Claims["CompanyId"]
+        return "A";
+    }
+
+}
