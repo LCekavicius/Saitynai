@@ -42,7 +42,7 @@ namespace WebUi.Data.Services.UserService
 
         public async Task<Result<CompanyDto>> GetCompany(int companyId)
         {
-            var resultJson = await this._httpClient.GetStringAsync($"{baseUrl}api/companies?{companyId}");
+            var resultJson = await this._httpClient.GetStringAsync($"{baseUrl}api/companies/{companyId}");
             var result = JsonConvert.DeserializeObject<CompanyDto>(resultJson);
             return new Result<CompanyDto>(result, true);
         }

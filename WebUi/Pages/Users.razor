@@ -97,8 +97,12 @@
         {
             isCreatingWorker = false;
             type = "Representative";
+            companies = (await companyService.GetCompanies()).Data;
         }
-        companies = (await companyService.GetCompanies()).Data;
+        else
+        {
+            selectedCompanyDto = (await companyService.GetCompany(int.Parse(userState.User.Claims.FirstOrDefault(e => e.Type.Equals("companyId")).Value))).Data;
+        }
         StateHasChanged();
     }
 

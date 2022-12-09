@@ -42,7 +42,8 @@ namespace WebApi.Controllers
 
         [HttpGet]
         [Route("{companyId}")]
-        [Authorize(Roles = ERPRoles.Admin + "," + ERPRoles.Representative)]
+        //All users should be bale to reach get company endpoint (only their company's) to get the name
+        //[Authorize(Roles = ERPRoles.Admin + "," + ERPRoles.Representative)]
         public async Task<ActionResult<CompanyDto>> Get(int companyId)
         {
             var company = await _repo.GetAsync(companyId);
@@ -50,7 +51,7 @@ namespace WebApi.Controllers
             var authorizationResult = await _authorizationService.AuthorizeAsync(User, companyId, PolicyNames.CompanyEmployee);
 
             if (!authorizationResult.Succeeded)
-                return null;
+                return Forbid();
 
 
             if (company is null)

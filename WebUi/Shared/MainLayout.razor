@@ -1,7 +1,9 @@
 ﻿@using WebUi.Auth;
+@using WebUi.Data.Services.UserService;
 @inherits LayoutComponentBase
 
 @inject AuthenticationStateProvider stateProvider
+@inject ICompanyService companyService
 
 <MudThemeProvider IsDarkMode=true/>
 <MudDialogProvider />
@@ -10,7 +12,7 @@
 <MudLayout>
     <MudDrawer @bind-Open="_drawerOpen" Elevation="1">
         <MudDrawerHeader>
-            <MudText Typo="Typo.h6">WebUi</MudText>
+            <MudText Typo="Typo.h6">@companyName</MudText>
         </MudDrawerHeader>
         <NavMenu />
     </MudDrawer>
@@ -33,6 +35,9 @@
 @code {
     bool _drawerOpen = true;
     private bool isProgressBarOpen { get; set; } = false;
+    string companyName { get; set; } = "";
+    public int? companyId { get; set; }
+
     void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
@@ -40,14 +45,29 @@
     public void SetProgressBarState(bool state)
     {
         isProgressBarOpen = state;
-        StateHasChanged();
+        StateHasChanged();  
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        companyName = await GetCompanyText();
     }
 
     public async Task<string> GetCompanyText()
     {
         var state = await ((ErpStateProvider)stateProvider).GetAuthenticationStateAsync();
-        //state.User.Claims["CompanyId"]
-        return "A";
+        if(!state.User.Claims.Any())
+            return "Signed out";
+
+        if (state.User.IsInRole("Admin"))
+            return "Administrator";
+
+        companyId = int.Parse(state.User.Claims.FirstOrDefault(e => e.Type.Equals("companyId")).Value);
+
+        var company = await companyService.GetCompany(companyId.Value);
+
+        return company.Data.name;
+
     }
 
 }

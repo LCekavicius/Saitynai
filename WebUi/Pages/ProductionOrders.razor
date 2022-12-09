@@ -1,5 +1,236 @@
-﻿<h3>ProductionOrders</h3>
+﻿@page "/productionorders"
+@using WebApi.Data.Dtos;
+@using WebUi.Data.Services.UserService;
 
-@code {
+@inject IOrderService orderService;
 
+@attribute [Authorize(Roles = "Representative")]
+
+<PageTitle>Production Orders</PageTitle>
+@if (isShowingInsertPopOver)
+{
+        <MudPopover AnchorOrigin="@Origin.CenterCenter" TransformOrigin="Origin.CenterCenter" Open="@isShowingInsertPopOver" Fixed="true" Class="px-4 pt-4">
+            <div class="d-flex flex-column">
+                <MudText>Insert Order</MudText>
+                <MudText>Product Name:</MudText>
+                <MudInputString @bind-Value="productName"></MudInputString>
+            <MudButton OnClick="@CreateOrder" Class="ml-auto mr-n3 mb-1" Disabled="@(productName == null)" Color="Color.Success">Create</MudButton>
+                <MudButton OnClick="@ToggleInsertPopOver" Class="ml-auto mr-n3 mb-1" Color="Color.Error">Close</MudButton>
+            </div>
+        </MudPopover>
+}
+
+@if (isShowingEditPopOver)
+{
+        <MudPopover AnchorOrigin="@Origin.CenterCenter" TransformOrigin="Origin.CenterCenter" Open="@isShowingEditPopOver" Fixed="true" Class="px-4 pt-4">
+            <div class="d-flex flex-column">
+            <MudText>Edit Order  @selectedOrder.productName</MudText>
+                <MudText>Product Name:</MudText>
+                <MudInputString @bind-Value="productName"></MudInputString>
+                <MudText>Start Date Time:</MudText>
+                <MudPaper></MudPaper>
+                <MudDatePicker @bind-Date="startDate" PickerVariant="@PickerVariant.Dialog" Class="z-10"/>
+                <MudTimePicker @bind-Time="startTime" PickerVariant="@PickerVariant.Dialog" />
+                <MudButton OnClick="@EditOrder" Class="ml-auto mr-n3 mb-1" Disabled="@(productName == null || !startDate.HasValue || !startTime.HasValue)" Color="Color.Success">Change</MudButton>
+                <MudButton OnClick="@ToggleEditPopOver" Class="ml-auto mr-n3 mb-1" Color="Color.Error">Close</MudButton>
+            </div>
+        </MudPopover>
+}
+
+@if (isShowingDeletePopOver)
+{
+        <MudPopover AnchorOrigin="@Origin.CenterCenter" TransformOrigin="Origin.CenterCenter" Open="@isShowingDeletePopOver" Fixed="true" Class="px-4 pt-4">
+            <div class="d-flex flex-column">
+                <MudText>Delete Order @selectedOrder.productName</MudText>
+                <MudButton OnClick="@DeleteOrder" Class="ml-auto mr-n3 mb-1" Color="Color.Success">Delete</MudButton>
+                <MudButton OnClick="@ToggleDeletePopOver" Class="ml-auto mr-n3 mb-1" Color="Color.Error">Close</MudButton>
+            </div>
+        </MudPopover>
+}
+
+
+
+<MudButton Color="Color.Secondary" Class="z-0" Variant="Variant.Filled" @onclick="() => ToggleInsertPopOver()" Style="margin:5px">Insert</MudButton>
+<MudButton Color="Color.Secondary" Class="z-0" Disabled="selectedOrder == null" Variant="Variant.Filled" @onclick="() => ToggleEditPopOver()" Style="margin:5px">Edit</MudButton>
+<MudButton Color="Color.Secondary" Class="z-0" Disabled="selectedOrder == null" Variant="Variant.Filled" @onclick="() => ToggleDeletePopOver()" Style="margin:5px">Delete</MudButton>
+
+<style>
+    .selected {
+        background-color: #1E88E5 !important;
+    }
+
+        .selected > td {
+            color: white !important;
+        }
+
+            .selected > td .mud-input {
+                color: white !important;
+            }
+</style>
+
+<MudTable Items="@ProductionOrderList.OrderByDescending(e => e.Creationdate)" Hover="true" Breakpoint="Breakpoint.Sm" @ref="mudTable"
+          RowClassFunc="@SelectedRowClassFunc" OnRowClick="OnRowClicked" T="ProductionOrderDto">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Production Orders</MudText>
+        <MudSpacer />
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Order Id</MudTh>
+        <MudTh>Product Name</MudTh>
+        <MudTh>Order Creation Date</MudTh>
+        <MudTh>Work Status</MudTh>
+        <MudTh>Start Date Time</MudTh>
+        <MudTh>End Date Time</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTh>@context.Id</MudTh>
+        <MudTh>@context.productName</MudTh>
+        <MudTh>@context.Creationdate.AddHours(2)</MudTh>
+        <MudTh>@GetWorkStatus(context)</MudTh>
+        <MudTh>@(!context.startDateTime.HasValue ? null : context.startDateTime.Value.AddHours(2))</MudTh>
+        <MudTh>@(!context.endDateTime.HasValue ? null : context.endDateTime.Value.AddHours(2))</MudTh>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+    @code {
+    [CascadingParameter]
+    public MainLayout mainLayout { get; set; }
+    List<ProductionOrderDto> ProductionOrderList { get; set; } = new List<ProductionOrderDto>();
+    bool isShowingInsertPopOver = false;
+    bool isShowingEditPopOver = false;
+    bool isShowingDeletePopOver = false;
+
+    string productName { get; set; } = "";
+    DateTime? startDate { get; set; }
+    TimeSpan? startTime { get; set; }
+
+    int selectedRowNumber { get; set; } = -1;
+    private MudTable<ProductionOrderDto> mudTable;
+
+    ProductionOrderDto selectedOrder { get; set; }
+
+    bool rowClicked { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadOrders();
+    }
+
+    void Test()
+    {
+        StateHasChanged();
+    }
+
+    protected string GetWorkStatus(ProductionOrderDto dto)
+    {
+        if (dto.startDateTime.HasValue && dto.endDateTime.HasValue)
+            return "Finished";
+        else if (dto.startDateTime.HasValue)
+            return "In Progress";
+
+        return "Not Started";
+    }
+
+    protected async Task LoadOrders()
+    {
+        this.ProductionOrderList = (await orderService.GetOrders(mainLayout.companyId.Value)).Data;
+    }
+
+    protected void ToggleInsertPopOver()
+    {
+        isShowingInsertPopOver = !isShowingInsertPopOver;
+    }
+    protected void ToggleEditPopOver()
+    {
+        productName = selectedOrder.productName;
+        if(selectedOrder.startDateTime.HasValue)
+        {
+            startDate = new DateTime(selectedOrder.startDateTime.Value.Year,
+                                     selectedOrder.startDateTime.Value.Month,
+                                     selectedOrder.startDateTime.Value.Day);
+
+            startTime = TimeSpan.FromMinutes(selectedOrder.startDateTime.Value.Minute) + TimeSpan.FromHours(selectedOrder.startDateTime.Value.Hour);
+        }
+        isShowingEditPopOver = !isShowingEditPopOver;
+    }
+    protected void ToggleDeletePopOver()
+    {
+        isShowingDeletePopOver = !isShowingDeletePopOver;
+    }
+
+    protected async Task DeleteOrder()
+    {
+        await orderService.DeleteOrder(mainLayout.companyId.Value, selectedOrder.Id);
+        ProductionOrderList.RemoveAll(e => e.Id.Equals(selectedOrder.Id));
+        StateHasChanged();
+        isShowingDeletePopOver = false;
+        selectedRowNumber = -1;
+    }
+
+    protected async Task EditOrder()
+    {
+        startDate = startDate.Value.Add(startTime.Value).AddHours(-2);
+        UpdateProductionOrderDto cmd = new UpdateProductionOrderDto(productName, startDate, null);
+        var updatedOrder = await orderService.UpdateOrder(mainLayout.companyId.Value, selectedOrder.Id, cmd);
+        ProductionOrderList[ProductionOrderList.IndexOf(selectedOrder)] = updatedOrder.Data;
+        StateHasChanged();
+        isShowingEditPopOver = false;
+        productName = string.Empty;
+        startDate = null;
+    }
+
+    protected async Task CreateOrder()
+    {
+        CreateProductionOrderDto cmd = new CreateProductionOrderDto(productName);
+        var newOrder = await orderService.InsertOrder(mainLayout.companyId.Value, cmd);
+        ProductionOrderList.Add(newOrder.Data);
+        isShowingInsertPopOver = false;
+        StateHasChanged();
+        productName = string.Empty;
+        startDate = null;
+        selectedRowNumber = -1;
+        selectedOrder = null;
+    }
+
+    private void OnRowClicked(TableRowClickEventArgs<ProductionOrderDto> p)
+    {
+        rowClicked = true;
+        if (mudTable != null && mudTable.SelectedItem != null && selectedOrder != null && mudTable.SelectedItem.Id == selectedOrder.Id)
+        {
+            selectedOrder = null;
+            return;
+        }
+        selectedOrder = mudTable.SelectedItem;
+    }
+
+    private string SelectedRowClassFunc(ProductionOrderDto element, int rowNumber)
+    {
+        if (!rowClicked)
+        {
+            if (selectedRowNumber == rowNumber)
+                return "selected";
+            return string.Empty;
+        }
+
+        if (rowNumber + 1 == ProductionOrderList.Count)
+            rowClicked = false;
+
+        if (selectedRowNumber == rowNumber)
+        {
+            selectedRowNumber = -1;
+            return string.Empty;
+        }
+        else if (mudTable.SelectedItem != null && mudTable.SelectedItem.Equals(element))
+        {
+            selectedRowNumber = rowNumber;
+            return "selected";
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
 }

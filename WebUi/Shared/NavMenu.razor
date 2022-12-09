@@ -1,4 +1,7 @@
-﻿<MudNavMenu>
+﻿@using WebUi.Auth;
+@inject AuthenticationStateProvider stateProvider
+
+<MudNavMenu>
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
     <AuthorizeView Roles="Admin,Representative">
         <MudNavLink Href="createuser" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.People">Add Users</MudNavLink>
@@ -6,7 +9,28 @@
     <AuthorizeView Roles="Admin">
         <MudNavLink Href="Companies" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Business">Companies</MudNavLink>
     </AuthorizeView>
+    <AuthorizeView Roles="Representative">
+        @if (!isAdmin)
+        {
+            <MudNavLink Href="productionorders" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.FileCopy">Production Orders</MudNavLink>
+        }
+    </AuthorizeView>
     <AuthorizeView>
         <MudNavLink Href="logout" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Logout">Log out</MudNavLink>
     </AuthorizeView>
 </MudNavMenu>
+
+@code{
+    private bool isAdmin { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isAdmin = await IsAdmin();
+    }
+
+    private async Task<bool> IsAdmin()
+    {
+        var state = await ((ErpStateProvider)stateProvider).GetAuthenticationStateAsync();
+        return state.User.IsInRole("Admin");
+    }
+}
