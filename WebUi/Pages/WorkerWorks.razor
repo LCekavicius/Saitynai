@@ -1,0 +1,237 @@
+﻿@page "/works"
+@using WebApi.Auth.Model;
+@using WebApi.Data.Dtos;
+@using WebUi.Data.Services.UserService;
+
+@inject IWorkService workService;
+@inject ICompanyService companyService;
+@inject IOrderService orderService;
+
+@attribute [Authorize(Roles = "Worker")]
+
+<PageTitle>Works</PageTitle>
+
+
+<MudButton Color="Color.Secondary" Disabled="selectedWork == null || selectedWork.endDateTime.HasValue || (!selectedWork.isPaused && selectedWork.startDateTime.HasValue)"
+        Variant="Variant.Filled" @onclick="() => StartWork()" Style="margin:5px">Start</MudButton>
+<MudButton Color="Color.Secondary" Class="z-0" Disabled="selectedWork == null || !selectedWork.startDateTime.HasValue || selectedWork.isPaused || selectedWork.endDateTime.HasValue" Variant="Variant.Filled" @onclick="() => PauseWork()" Style="margin:5px">Pause</MudButton>
+<MudButton Color="Color.Secondary" Class="z-0" Disabled="selectedWork == null || !selectedWork.startDateTime.HasValue || selectedWork.endDateTime.HasValue || selectedWork.isPaused" Variant="Variant.Filled" @onclick="() => FinishWork()" Style="margin:5px">Finish</MudButton>
+
+<style>
+    .selected {
+        background-color: #1E88E5 !important;
+    }
+
+        .selected > td {
+            color: white !important;
+        }
+
+            .selected > td .mud-input {
+                color: white !important;
+            }
+</style>
+
+<MudTable Items="@WorkList" Hover="true" Breakpoint="Breakpoint.Sm" @ref="mudTable"
+          RowClassFunc="@SelectedRowClassFunc" OnRowClick="OnRowClicked" T="WorksDto">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Works</MudText>
+        <MudSpacer />
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Id</MudTh>
+        <MudTh>Product</MudTh>
+        <MudTh>Type</MudTh>
+        <MudTh>Description</MudTh>
+        <MudTh>Creation Date</MudTh>
+        <MudTh>Work Status</MudTh>
+        <MudTh>Start Date Time</MudTh>
+        <MudTh>End Date Time</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTh>@context.Id</MudTh>
+        <MudTh>@GetOrderProduct(context)</MudTh>
+        <MudTh>@context.type</MudTh>
+        <MudTh>@context.description</MudTh>
+        <MudTh>@context.Creationdate</MudTh>
+        <MudTh>@GetWorkStatus(context)</MudTh>
+        <MudTh>@context.startDateTime</MudTh>
+        <MudTh>@context.endDateTime</MudTh>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    [CascadingParameter]
+    public MainLayout mainLayout { get; set; }
+    List<WorksDto> WorkList { get; set; } = new List<WorksDto>();
+    bool isShowingStartWorkPopover = false;
+    bool isShowingFinishWorkPopOver = false;
+    bool isShowingDeletePopOver = false;
+
+    string type { get; set; } = "";
+    string description { get; set; } = "";
+    DateTime? startDate { get; set; }
+    TimeSpan? startTime { get; set; }
+    DateTime? endDate { get; set; }
+    TimeSpan? endTime { get; set; }
+    ERPUser SelectedWorker { get; set; }
+
+    int selectedRowNumber { get; set; } = -1;
+    private MudTable<WorksDto> mudTable;
+
+    WorksDto selectedWork { get; set; }
+
+    bool rowClicked { get; set; } = false;
+
+    List<ERPUser> WorkerList { get; set; }
+
+    List<ProductionOrderDto> orders { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadWorkers(await mainLayout.GetCompanyId());
+        await LoadWorks();
+        this.orders = (await orderService.GetOrders(await mainLayout.GetCompanyId())).Data;
+    }
+
+    protected async Task LoadWorks()
+    {
+        this.WorkList = (await companyService
+            .GetAllWorkerWorks(await mainLayout.GetCompanyId())).Data
+            .ToList();
+
+        this.WorkList.Sort();
+    }
+
+    private int StatusToValue(DateTime? startDateTime, DateTime? endDateTime, bool isPaused)
+    {
+        if (isPaused)
+            return 1;
+        if (startDateTime.HasValue && endDateTime.HasValue)
+            return 2;
+        if (startDateTime.HasValue)
+            return 0;
+
+        return 1;
+    }
+
+    protected async Task LoadWorkers(int companyId)
+    {
+        this.WorkerList = (await companyService.GetCompanyWorkers(companyId)).Data;
+    }
+
+    protected string GetOrderProduct(WorksDto dto)
+    {
+        return orders.FirstOrDefault(e => e.Id.Equals(dto.productionOrderId)).productName;
+    }
+
+    protected string GetWorkStatus(WorksDto dto)
+    {
+        if (dto.isPaused)
+            return "Paused";
+        if (dto.startDateTime.HasValue && dto.endDateTime.HasValue)
+            return "Finished";
+        if (dto.startDateTime.HasValue)
+            return "In Progress";
+
+        return "Not Started";
+    }
+
+    protected async Task StartWork()
+    {
+        UpdateWorksDto cmd;
+        if(selectedWork.isPaused)
+            cmd = new UpdateWorksDto(selectedWork.type, selectedWork.description, selectedWork.startDateTime, selectedWork.endDateTime, false);
+        else
+            cmd = new UpdateWorksDto(selectedWork.type, selectedWork.description, DateTime.UtcNow, selectedWork.endDateTime, selectedWork.isPaused);
+        await StartOrder();
+        var updatedWork = await workService.UpdateWork(await mainLayout.GetCompanyId(), selectedWork.productionOrderId, selectedWork.Id, cmd);
+        WorkList[WorkList.IndexOf(selectedWork)] = updatedWork.Data;
+        selectedWork = updatedWork.Data;
+        StateHasChanged();
+    }
+
+    protected async Task PauseWork()
+    {
+        UpdateWorksDto cmd = new UpdateWorksDto(selectedWork.type, selectedWork.description, selectedWork.startDateTime, selectedWork.endDateTime, true);
+        var updatedWork = await workService.UpdateWork(await mainLayout.GetCompanyId(), selectedWork.productionOrderId, selectedWork.Id, cmd);
+        WorkList[WorkList.IndexOf(selectedWork)] = updatedWork.Data;
+        selectedWork = updatedWork.Data;
+        StateHasChanged();
+    }
+
+    protected async Task FinishWork()
+    {
+        UpdateWorksDto cmd = new UpdateWorksDto(selectedWork.type, selectedWork.description, selectedWork.startDateTime, DateTime.UtcNow, selectedWork.isPaused);
+        var updatedWork = await workService.UpdateWork(await mainLayout.GetCompanyId(), selectedWork.productionOrderId, selectedWork.Id, cmd);
+        WorkList[WorkList.IndexOf(selectedWork)] = updatedWork.Data;
+        selectedWork = updatedWork.Data;
+        await FinishOrder();
+        StateHasChanged();
+    }
+
+    protected async Task FinishOrder()
+    {
+        var orderWorks = await workService.GetWorks(await mainLayout.GetCompanyId(), selectedWork.productionOrderId);
+        if(orderWorks.Data.All(e => e.endDateTime.HasValue))
+        {
+            var order = orders.FirstOrDefault(e => e.Id.Equals(selectedWork.productionOrderId));
+            UpdateProductionOrderDto cmd = new UpdateProductionOrderDto(order.productName, order.startDateTime, DateTime.UtcNow);
+            await orderService.UpdateOrder(await mainLayout.GetCompanyId(), order.Id, cmd);
+            this.orders = (await orderService.GetOrders(await mainLayout.GetCompanyId())).Data;
+        }
+    }
+
+    protected async Task StartOrder()
+    {
+        var orderWorks = await workService.GetWorks(await mainLayout.GetCompanyId(), selectedWork.productionOrderId);
+        if (orderWorks.Data.All(e => !e.startDateTime.HasValue))
+        {
+            var order = orders.FirstOrDefault(e => e.Id.Equals(selectedWork.productionOrderId));
+            UpdateProductionOrderDto cmd = new UpdateProductionOrderDto(order.productName, DateTime.UtcNow, order.endDateTime);
+            await orderService.UpdateOrder(await mainLayout.GetCompanyId(), order.Id, cmd);
+            this.orders = (await orderService.GetOrders(await mainLayout.GetCompanyId())).Data;
+        }
+    }
+
+    private void OnRowClicked(TableRowClickEventArgs<WorksDto> p)
+    {
+        rowClicked = true;
+        if (mudTable != null && mudTable.SelectedItem != null && selectedWork != null && mudTable.SelectedItem.Id == selectedWork.Id)
+        {
+            selectedWork = null;
+            return;
+        }
+        selectedWork = mudTable.SelectedItem;
+    }
+
+    private string SelectedRowClassFunc(WorksDto element, int rowNumber)
+    {
+        if (!rowClicked)
+        {
+            if (selectedRowNumber == rowNumber)
+                return "selected";
+            return string.Empty;
+        }
+
+        if (rowNumber + 1 == WorkList.Count)
+            rowClicked = false;
+
+        if (selectedRowNumber == rowNumber)
+        {
+            selectedRowNumber = -1;
+            return string.Empty;
+        }
+        else if (mudTable.SelectedItem != null && mudTable.SelectedItem.Equals(element))
+        {
+            selectedRowNumber = rowNumber;
+            return "selected";
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+}

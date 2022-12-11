@@ -37,6 +37,7 @@
     private bool isProgressBarOpen { get; set; } = false;
     string companyName { get; set; } = "";
     public int? companyId { get; set; }
+    public string userId { get; set; } = "";
 
     void DrawerToggle()
     {
@@ -53,6 +54,22 @@
         companyName = await GetCompanyText();
     }
 
+    public async Task<string> GetUserId()
+    {
+        var state = await ((ErpStateProvider)stateProvider).GetAuthenticationStateAsync();
+        if (userId == "")
+            userId = (state.User.Claims.FirstOrDefault(e => e.Type.Equals("sub"))).Value;
+        return this.userId;
+    }
+
+    public async Task<int> GetCompanyId()
+    {
+        var state = await((ErpStateProvider)stateProvider).GetAuthenticationStateAsync();
+        if(!companyId.HasValue)
+            companyId = int.Parse(state.User.Claims.FirstOrDefault(e => e.Type.Equals("companyId")).Value);
+        return this.companyId.Value;
+    }
+
     public async Task<string> GetCompanyText()
     {
         var state = await ((ErpStateProvider)stateProvider).GetAuthenticationStateAsync();
@@ -62,7 +79,7 @@
         if (state.User.IsInRole("Admin"))
             return "Administrator";
 
-        companyId = int.Parse(state.User.Claims.FirstOrDefault(e => e.Type.Equals("companyId")).Value);
+        await GetCompanyId();
 
         var company = await companyService.GetCompany(companyId.Value);
 

@@ -42,7 +42,7 @@ namespace WebUi.Data.Services.UserService
 
         public async Task<Result<ProductionOrderDto>> GetOrder(int companyId, int orderId)
         {
-            var resultJson = await this._httpClient.GetStringAsync($"{baseUrl}api/companies/{companyId}/productionorders");
+            var resultJson = await this._httpClient.GetStringAsync($"{baseUrl}api/companies/{companyId}/productionorders/{orderId}");
             var result = JsonConvert.DeserializeObject<ProductionOrderDto>(resultJson);
             return new Result<ProductionOrderDto>(result, true);
         }

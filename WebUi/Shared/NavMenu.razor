@@ -15,6 +15,12 @@
             <MudNavLink Href="productionorders" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.FileCopy">Production Orders</MudNavLink>
         }
     </AuthorizeView>
+    <AuthorizeView Roles="Worker">
+        @if (!isAdmin)
+        {
+            <MudNavLink Href="works" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Work">Works</MudNavLink>
+        }
+    </AuthorizeView>
     <AuthorizeView>
         <MudNavLink Href="logout" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Logout">Log out</MudNavLink>
     </AuthorizeView>

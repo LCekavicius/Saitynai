@@ -3,6 +3,7 @@
 @using WebUi.Data.Services.UserService;
 
 @inject IOrderService orderService;
+@inject NavigationManager navigationManager;
 
 @attribute [Authorize(Roles = "Representative")]
 
@@ -28,9 +29,8 @@
                 <MudText>Product Name:</MudText>
                 <MudInputString @bind-Value="productName"></MudInputString>
                 <MudText>Start Date Time:</MudText>
-                <MudPaper></MudPaper>
                 <MudDatePicker @bind-Date="startDate" PickerVariant="@PickerVariant.Dialog" Class="z-10"/>
-                <MudTimePicker @bind-Time="startTime" PickerVariant="@PickerVariant.Dialog" />
+                <MudTimePicker @bind-Time="startTime" Disabled="@(!startDate.HasValue)" PickerVariant="@PickerVariant.Dialog" />
                 <MudButton OnClick="@EditOrder" Class="ml-auto mr-n3 mb-1" Disabled="@(productName == null || !startDate.HasValue || !startTime.HasValue)" Color="Color.Success">Change</MudButton>
                 <MudButton OnClick="@ToggleEditPopOver" Class="ml-auto mr-n3 mb-1" Color="Color.Error">Close</MudButton>
             </div>
@@ -53,6 +53,7 @@
 <MudButton Color="Color.Secondary" Class="z-0" Variant="Variant.Filled" @onclick="() => ToggleInsertPopOver()" Style="margin:5px">Insert</MudButton>
 <MudButton Color="Color.Secondary" Class="z-0" Disabled="selectedOrder == null" Variant="Variant.Filled" @onclick="() => ToggleEditPopOver()" Style="margin:5px">Edit</MudButton>
 <MudButton Color="Color.Secondary" Class="z-0" Disabled="selectedOrder == null" Variant="Variant.Filled" @onclick="() => ToggleDeletePopOver()" Style="margin:5px">Delete</MudButton>
+<MudButton Color="Color.Secondary" Class="z-0" Disabled="selectedOrder == null" Variant="Variant.Filled" @onclick="() => NavigateToWorks()" Style="margin:5px">Works</MudButton>
 
 <style>
     .selected {
@@ -134,9 +135,14 @@
         return "Not Started";
     }
 
+    protected void NavigateToWorks()
+    {
+        navigationManager.NavigateTo($"/productionorders/{selectedOrder.Id}");
+    }
+
     protected async Task LoadOrders()
     {
-        this.ProductionOrderList = (await orderService.GetOrders(mainLayout.companyId.Value)).Data;
+        this.ProductionOrderList = (await orderService.GetOrders(await mainLayout.GetCompanyId())).Data;
     }
 
     protected void ToggleInsertPopOver()

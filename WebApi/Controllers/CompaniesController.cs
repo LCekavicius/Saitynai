@@ -19,6 +19,20 @@ namespace WebApi.Controllers
             this._authorizationService = authorizationService;
         }
         [HttpGet]
+        [Route("{companyId}/GetAllCompanyWorkers")]
+        //[Authorize(Roles = ERPRoles.Admin + "," + ERPRoles.Representative)]
+        public async Task<List<ERPUser>> GetAllCompanyWorkers(int companyId)
+        {
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, companyId, PolicyNames.CompanyEmployee);
+
+            if (!authorizationResult.Succeeded)
+                return null;
+
+            var workers = await _repo.GetCompanyWorkers(companyId);
+
+            return workers;
+        }
+        [HttpGet]
         [Route("{companyId}/GetAllWorks")]
         public async Task<IEnumerable<WorksDto>> GetAllCompanyWorks(int companyId)
         {
@@ -30,7 +44,24 @@ namespace WebApi.Controllers
                 return null;
 
             return works.Select(e => new WorksDto(e.Id, e.Type, e.Description, e.CreationDate,
-                e.ModifiedDate, e.StartDateTime, e.EndDateTime, e.IsPaused, e.ProductionOrder.Id));
+                e.ModifiedDate, e.StartDateTime, e.EndDateTime, e.IsPaused, e.ProductionOrder.Id, e.UserId));
+        }
+        [HttpGet]
+        [Route("{companyId}/GetAllWorkerWorks")]
+        public async Task<IEnumerable<WorksDto>> GetWorkerWorks(int companyId)
+        {
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, companyId, PolicyNames.CompanyEmployee);
+
+            if (!authorizationResult.Succeeded)
+                return null;
+
+            var userId = (User.Claims.FirstOrDefault(e => e.Type.Equals("sub"))).Value;
+
+            var works = await _repo.GetAllWorkerWorks(companyId, userId);
+
+
+            return works.Select(e => new WorksDto(e.Id, e.Type, e.Description, e.CreationDate,
+                e.ModifiedDate, e.StartDateTime, e.EndDateTime, e.IsPaused, e.ProductionOrder.Id, e.UserId));
         }
         [HttpGet]
         [Authorize(Roles = ERPRoles.Admin)]

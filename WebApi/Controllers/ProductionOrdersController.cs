@@ -82,7 +82,7 @@ namespace WebApi.Controllers
                 Company = company
             };
 
-            await _repo.CreateAsync(productionOrder);
+                await _repo.CreateAsync(productionOrder);
 
             //201
             return Created("", new ProductionOrderDto(productionOrder.Id, productionOrder.ProductName,
@@ -92,7 +92,7 @@ namespace WebApi.Controllers
 
         [HttpPut]
         [Route("{orderId}")]
-        [Authorize(Roles = ERPRoles.Representative)]
+        [Authorize(Roles = ERPRoles.Representative + "," + ERPRoles.Worker)]
         public async Task<ActionResult<ProductionOrderDto>> Update(int? companyId, int? orderId,
             UpdateProductionOrderDto updateProductionOrderDto)
         {

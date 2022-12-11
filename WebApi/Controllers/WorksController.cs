@@ -33,7 +33,7 @@ namespace WebApi.Controllers
                 return null;
 
             return works.Select(e => new WorksDto(e.Id, e.Type, e.Description, e.CreationDate,
-                e.ModifiedDate, e.StartDateTime, e.EndDateTime, e.IsPaused, e.ProductionOrder.Id));
+                e.ModifiedDate, e.StartDateTime, e.EndDateTime, e.IsPaused, e.ProductionOrder.Id, e.UserId));
         }
 
         [HttpGet]
@@ -54,7 +54,7 @@ namespace WebApi.Controllers
                 return Forbid();
 
             return new WorksDto(work.Id, work.Type, work.Description, work.CreationDate,
-                work.ModifiedDate, work.StartDateTime, work.EndDateTime, work.IsPaused, work.ProductionOrder.Id);
+                work.ModifiedDate, work.StartDateTime, work.EndDateTime, work.IsPaused, work.ProductionOrder.Id, work.UserId);
         }
 
         [HttpPost]
@@ -83,7 +83,7 @@ namespace WebApi.Controllers
 
             //201
             return Created("", new WorksDto(work.Id, work.Type, work.Description, work.CreationDate,
-                work.ModifiedDate, work.StartDateTime, work.EndDateTime, work.IsPaused, work.ProductionOrder.Id));
+                work.ModifiedDate, work.StartDateTime, work.EndDateTime, work.IsPaused, work.ProductionOrder.Id, work.UserId));
         }
 
         [HttpPut]
@@ -115,7 +115,7 @@ namespace WebApi.Controllers
             await _repo.UpdateAsync(work);
 
             return Ok(new WorksDto(work.Id, work.Type, work.Description, work.CreationDate,
-                work.ModifiedDate, work.StartDateTime, work.EndDateTime, work.IsPaused, work.ProductionOrder.Id));
+                work.ModifiedDate, work.StartDateTime, work.EndDateTime, work.IsPaused, work.ProductionOrder.Id, work.UserId));
         }
 
         [Route("{workId}")]

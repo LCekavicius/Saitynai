@@ -1,0 +1,303 @@
+﻿@page "/productionorders/{orderId:int}"
+@using WebApi.Auth.Model;
+@using WebApi.Data.Dtos;
+@using WebUi.Data.Services.UserService;
+
+@inject IWorkService workService;
+@inject ICompanyService companyService;
+@inject IOrderService orderService;
+
+@attribute [Authorize(Roles = "Representative")]
+
+<PageTitle>Order Works</PageTitle>
+@if (orderDto != null)
+{
+    <MudPaper Elevation="2" Class="pa-4" Style="height: 200;">
+        <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Order: #@orderDto.Id @orderDto.productName</MudText>
+    </MudPaper>
+}
+@if (isShowingInsertPopOver)
+{
+    <MudPopover AnchorOrigin="@Origin.CenterCenter" TransformOrigin="Origin.CenterCenter" Open="@isShowingInsertPopOver" Fixed="true" Class="px-4 pt-4">
+        <div class="d-flex flex-column">
+            <MudText>Insert Work</MudText>
+            <MudText>Work Type:</MudText>
+            <MudInputString @bind-Value="type"></MudInputString>
+            <MudText>Description:</MudText>
+            <MudInputString @bind-Value="description"></MudInputString>
+            @if(WorkerList != null)
+            {
+            <MudText>Responsible Worker:</MudText>
+                <MudItem xs="12">
+                    <MudSelect T="ERPUser" @bind-Value="@SelectedWorker" AnchorOrigin="Origin.BottomCenter" Variant="Variant.Filled">
+                        @foreach (var item in WorkerList)
+                        {
+                            <MudSelectItem Value="@(item)"></MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            }
+            <MudButton OnClick="@CreateWork" Class="ml-auto mr-n3 mb-1" Disabled="@(type == string.Empty || description == string.Empty || SelectedWorker == null)" Color="Color.Success">Create</MudButton>
+            <MudButton OnClick="@ToggleInsertPopOver" Class="ml-auto mr-n3 mb-1" Color="Color.Error">Close</MudButton>
+        </div>
+    </MudPopover>
+}
+
+@if (isShowingEditPopOver)
+{
+    <MudPopover AnchorOrigin="@Origin.CenterCenter" TransformOrigin="Origin.CenterCenter" Open="@isShowingEditPopOver" Fixed="true" Class="px-4 pt-4">
+        <div class="d-flex flex-column">
+            <MudText>Edit Work @selectedWork.Id</MudText>
+            <MudText>Work Type:</MudText>
+            <MudInputString @bind-Value="type"></MudInputString>
+            <MudText>Description:</MudText>
+            <MudInputString @bind-Value="description"></MudInputString>
+            <MudText>Start Date Time:</MudText>
+            <MudDatePicker @bind-Date="startDate" PickerVariant="@PickerVariant.Dialog" Class="z-10" />
+            <MudTimePicker @bind-Time="startTime" Disabled="!startDate.HasValue" PickerVariant="@PickerVariant.Dialog" />
+            <MudText>End Date Time:</MudText>
+            <MudDatePicker @bind-Date="endDate" PickerVariant="@PickerVariant.Dialog" Class="z-10"/>
+            <MudTimePicker @bind-Time="endTime" Disabled="!endDate.HasValue" PickerVariant="@PickerVariant.Dialog" />
+            @if(WorkerList != null)
+            {
+            <MudText>Responsible Worker:</MudText>
+                <MudItem xs="12">
+                    <MudSelect T="ERPUser" @bind-Value="@SelectedWorker" AnchorOrigin="Origin.BottomCenter" Variant="Variant.Filled">
+                        @foreach (var item in WorkerList)
+                        {
+                            <MudSelectItem Value="@(item)"></MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            }
+            <MudButton OnClick="@EditWork" Class="ml-auto mr-n3 mb-1" Disabled="@(type == string.Empty || description == string.Empty || SelectedWorker == null)" Color="Color.Success">Change</MudButton>
+            <MudButton OnClick="@ToggleEditPopOver" Class="ml-auto mr-n3 mb-1" Color="Color.Error">Close</MudButton>
+        </div>
+    </MudPopover>
+}
+
+@if (isShowingDeletePopOver)
+{
+    <MudPopover AnchorOrigin="@Origin.CenterCenter" TransformOrigin="Origin.CenterCenter" Open="@isShowingDeletePopOver" Fixed="true" Class="px-4 pt-4">
+        <div class="d-flex flex-column">
+            <MudText>Delete Work @selectedWork.Id</MudText>
+            <MudButton OnClick="@DeleteWork" Class="ml-auto mr-n3 mb-1" Color="Color.Success">Delete</MudButton>
+            <MudButton OnClick="@ToggleDeletePopOver" Class="ml-auto mr-n3 mb-1" Color="Color.Error">Close</MudButton>
+        </div>
+    </MudPopover>
+}
+
+
+
+<MudButton Color="Color.Secondary" Class="z-0" Disabled="orderDto == null || orderDto.endDateTime.HasValue" Variant="Variant.Filled" @onclick="() => ToggleInsertPopOver()" Style="margin:5px">Insert</MudButton>
+<MudButton Color="Color.Secondary" Class="z-0" Disabled="selectedWork == null" Variant="Variant.Filled" @onclick="() => ToggleEditPopOver()" Style="margin:5px">Edit</MudButton>
+<MudButton Color="Color.Secondary" Class="z-0" Disabled="selectedWork == null" Variant="Variant.Filled" @onclick="() => ToggleDeletePopOver()" Style="margin:5px">Delete</MudButton>
+
+<style>
+    .selected {
+        background-color: #1E88E5 !important;
+    }
+
+        .selected > td {
+            color: white !important;
+        }
+
+            .selected > td .mud-input {
+                color: white !important;
+            }
+</style>
+
+<MudTable Items="@WorkList.OrderBy(e => e.Creationdate)" Hover="true" Breakpoint="Breakpoint.Sm" @ref="mudTable"
+          RowClassFunc="@SelectedRowClassFunc" OnRowClick="OnRowClicked" T="WorksDto">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Works</MudText>
+        <MudSpacer />
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Id</MudTh>
+        <MudTh>Type</MudTh>
+        <MudTh>Description</MudTh>
+        <MudTh>Creation Date</MudTh>
+        <MudTh>Work Status</MudTh>
+        <MudTh>Worker</MudTh>
+        <MudTh>Start Date Time</MudTh>
+        <MudTh>End Date Time</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTh>@context.Id</MudTh>
+        <MudTh>@context.type</MudTh>
+        <MudTh>@context.description</MudTh>
+        <MudTh>@context.Creationdate</MudTh>
+        <MudTh>@GetWorkStatus(context)</MudTh>
+        <MudTh>@GetWorkWorker(context)</MudTh>
+        <MudTh>@context.startDateTime</MudTh>
+        <MudTh>@context.endDateTime</MudTh>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    [Parameter]
+    public int orderId { get; set; }
+    [CascadingParameter]
+    public MainLayout mainLayout { get; set; }
+    List<WorksDto> WorkList { get; set; } = new List<WorksDto>();
+    bool isShowingInsertPopOver = false;
+    bool isShowingEditPopOver = false;
+    bool isShowingDeletePopOver = false;
+
+    string type { get; set; } = "";
+    string description { get; set; } = "";
+    DateTime? startDate { get; set; }
+    TimeSpan? startTime { get; set; }
+    DateTime? endDate { get; set; }
+    TimeSpan? endTime { get; set; }
+    ERPUser SelectedWorker { get; set; }
+
+    int selectedRowNumber { get; set; } = -1;
+    private MudTable<WorksDto> mudTable;
+
+    WorksDto selectedWork { get; set; }
+
+    bool rowClicked { get; set; } = false;
+
+    List<ERPUser> WorkerList{ get; set; }
+
+    ProductionOrderDto orderDto { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadWorkers(await mainLayout.GetCompanyId());
+        await LoadWorks();
+        orderDto = (await orderService.GetOrder(await mainLayout.GetCompanyId(), orderId)).Data;
+    }
+
+    protected async Task LoadWorks()
+    {
+        this.WorkList = (await workService.GetWorks(await mainLayout.GetCompanyId(), orderId)).Data;
+    }
+
+    protected async Task LoadWorkers(int companyId)
+    {
+        this.WorkerList = (await companyService.GetCompanyWorkers(companyId)).Data;
+    }
+
+    protected string GetWorkWorker(WorksDto dto)
+    {
+        return WorkerList.FirstOrDefault(e => e.Id.Equals(dto.userId)).UserName;
+    }
+
+    protected string GetWorkStatus(WorksDto dto)
+    {
+        if (dto.startDateTime.HasValue && dto.endDateTime.HasValue)
+            return "Finished";
+        else if (dto.startDateTime.HasValue)
+            return "In Progress";
+
+        return "Not Started";
+    }
+
+    protected void ToggleInsertPopOver()
+    {
+        isShowingInsertPopOver = !isShowingInsertPopOver;
+    }
+    protected void ToggleEditPopOver()
+    {
+        type = selectedWork.type;
+        description = selectedWork.description;
+        if(selectedWork.startDateTime.HasValue)
+        {
+            startDate = new DateTime(selectedWork.startDateTime.Value.Year,
+                                     selectedWork.startDateTime.Value.Month,
+                                     selectedWork.startDateTime.Value.Day);
+
+            startTime = TimeSpan.FromMinutes(selectedWork.startDateTime.Value.Minute) + TimeSpan.FromHours(selectedWork.startDateTime.Value.Hour);
+        }
+        if (selectedWork.endDateTime.HasValue)
+        {
+            endDate = new DateTime(selectedWork.endDateTime.Value.Year,
+                                     selectedWork.endDateTime.Value.Month,
+                                     selectedWork.endDateTime.Value.Day);
+
+            endTime = TimeSpan.FromMinutes(selectedWork.endDateTime.Value.Minute) + TimeSpan.FromHours(selectedWork.endDateTime.Value.Hour);
+        }
+        isShowingEditPopOver = !isShowingEditPopOver;
+    }
+    protected void ToggleDeletePopOver()
+    {
+        isShowingDeletePopOver = !isShowingDeletePopOver;
+    }
+
+    protected async Task DeleteWork()
+    {
+        await workService.DeleteWork(await mainLayout.GetCompanyId(), orderId, selectedWork.Id);
+        WorkList.RemoveAll(e => e.Id.Equals(selectedWork.Id));
+        StateHasChanged();
+        isShowingDeletePopOver = false;
+        selectedRowNumber = -1;
+    }
+
+    protected async Task EditWork()
+    {
+        if (startDate.HasValue && startTime.HasValue)
+            startDate = startDate.Value.Add(startTime.Value).AddHours(-2);
+        if(endDate.HasValue && endTime.HasValue)
+            endDate = endDate.Value.Add(endTime.Value).AddHours(-2);
+        UpdateWorksDto cmd = new UpdateWorksDto(type, description, startDate, endDate, selectedWork.isPaused);
+        var updatedWork = await workService.UpdateWork(await mainLayout.GetCompanyId(), orderId, selectedWork.Id, cmd);
+        WorkList[WorkList.IndexOf(selectedWork)] = updatedWork.Data;
+        StateHasChanged();
+        isShowingEditPopOver = false;
+    }
+
+    protected async Task CreateWork()
+    {
+        CreateWorksDto cmd = new CreateWorksDto(SelectedWorker.Id, type, description);
+        var newWork = await workService.InsertWork(await mainLayout.GetCompanyId(), orderId, cmd);
+        WorkList.Add(newWork.Data);
+        isShowingInsertPopOver = false;
+        StateHasChanged();
+        selectedRowNumber = -1;
+    }
+
+    private void OnRowClicked(TableRowClickEventArgs<WorksDto> p)
+    {
+        rowClicked = true;
+        if (mudTable != null && mudTable.SelectedItem != null && selectedWork != null && mudTable.SelectedItem.Id == selectedWork.Id)
+        {
+            selectedWork = null;
+            return;
+        }
+        selectedWork = mudTable.SelectedItem;
+    }
+
+    private string SelectedRowClassFunc(WorksDto element, int rowNumber)
+    {
+        if (!rowClicked)
+        {
+            if (selectedRowNumber == rowNumber)
+                return "selected";
+            return string.Empty;
+        }
+
+        if (rowNumber + 1 == WorkList.Count)
+            rowClicked = false;
+
+        if (selectedRowNumber == rowNumber)
+        {
+            selectedRowNumber = -1;
+            return string.Empty;
+        }
+        else if (mudTable.SelectedItem != null && mudTable.SelectedItem.Equals(element))
+        {
+            selectedRowNumber = rowNumber;
+            return "selected";
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+}

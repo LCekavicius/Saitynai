@@ -23,6 +23,7 @@ StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configurat
 builder.Services.AddTransient<IAuthService, AuthService>();
 builder.Services.AddTransient<ICompanyService, CompanyService>();
 builder.Services.AddTransient<IOrderService, OrderService>();
+builder.Services.AddTransient<IWorkService, WorkService>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<LaucekERPDbContext>();

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using WebApi.Auth.Model;
 using WebApi.Data.Entities;
 
 namespace WebApi.Data.Repositories
@@ -11,6 +12,8 @@ namespace WebApi.Data.Repositories
         Task<IReadOnlyList<Company>> GetManyAsync();
         Task<IReadOnlyList<Work>> GetAllCompanyWorks(int companyId);
         Task UpdateAsync(Company company);
+        Task<List<ERPUser>> GetCompanyWorkers(int companyId);
+        Task<IReadOnlyList<Work>> GetAllWorkerWorks(int companyId, string userId);
     }
 
     public class CompaniesRepository : ICompaniesRepository
@@ -60,6 +63,24 @@ namespace WebApi.Data.Repositories
         {
             _context.Companies.Update(company);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<ERPUser>> GetCompanyWorkers(int companyId)
+        {
+            var workerRole = _context.Roles.FirstOrDefault(e => e.Name.Equals("Worker"));
+            var userRoles = await _context.UserRoles.Where(e => e.RoleId.Equals(workerRole.Id)).ToListAsync();
+            var companyEmployees = await _context.Users.Where(e => e.CompanyId == companyId).ToListAsync();
+            return companyEmployees.Where(e => userRoles.Any(r => r.UserId.Equals(e.Id))).ToList();
+        }
+
+        public async Task<IReadOnlyList<Work>> GetAllWorkerWorks(int companyId, string userId)
+        {
+            return await _context.Works
+                .AsNoTracking()
+                .Include(e => e.ProductionOrder)
+                    .ThenInclude(e => e.Company)
+                .Where(e => e.ProductionOrder.Company.Id == companyId && e.UserId.Equals(userId))
+                .ToListAsync();
         }
     }
 }

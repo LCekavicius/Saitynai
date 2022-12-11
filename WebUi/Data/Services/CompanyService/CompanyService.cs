@@ -39,6 +39,24 @@ namespace WebUi.Data.Services.UserService
             var result = JsonConvert.DeserializeObject<List<CompanyDto>>(resultJson);
             return new Result<List<CompanyDto>>(result, true);
         }
+        public async Task<Result<List<WorksDto>>> GetAllWorks(int companyId)
+        {
+            var resultJson = await this._httpClient.GetStringAsync($"{baseUrl}api/companies/{companyId}/GetAllWorks");
+            var result = JsonConvert.DeserializeObject<List<WorksDto>>(resultJson);
+            return new Result<List<WorksDto>>(result, true);
+        }
+        public async Task<Result<List<WorksDto>>> GetAllWorkerWorks(int companyId)
+        {
+            var resultJson = await this._httpClient.GetStringAsync($"{baseUrl}api/companies/{companyId}/GetAllWorkerWorks");
+            var result = JsonConvert.DeserializeObject<List<WorksDto>>(resultJson);
+            return new Result<List<WorksDto>>(result, true);
+        }
+        public async Task<Result<List<ERPUser>>> GetCompanyWorkers(int companyId)
+        {
+            var resultJson = await this._httpClient.GetStringAsync($"{baseUrl}api/companies/{companyId}/GetAllCompanyWorkers");
+            var result = JsonConvert.DeserializeObject<List<ERPUser>>(resultJson);
+            return new Result<List<ERPUser>>(result, true);
+        }
 
         public async Task<Result<CompanyDto>> GetCompany(int companyId)
         {
