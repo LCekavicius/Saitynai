@@ -98,5 +98,5 @@ JWT data:
 | Uzklausos header           | -                                                                                               |
 | Reikalaujami Role          | -                                                                                                               |
 | Atsakymo kodas             | 200 - Ok                                                                                                                |
-| Atsakymo struktura         | { "id": "056573e6-9a8f-4f0a-97b6-f6e13134ef1d", "userName": "Laurel57_GYN2", "email": "itsemail@gmail.com", "companyId": 4 } |
+| Atsakymo struktura         | { "accessToken": {token} } |
 | Kiti galimi atsakymo kodai | 400 - Bad Request ( Kai paduotas username nerandamas arba slaptazodis neatitinka ),  |
