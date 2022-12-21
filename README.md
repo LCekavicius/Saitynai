@@ -70,11 +70,11 @@ JWT data:
 | :------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
 | Paskirtis                  | Uzregistruoti imones darbuotoja                                                                                              |
 | Endpoint'o kelias          | /api/registerworker                                                                                                          |
-| Uzklausos struktura        | { "userName": "Laurel57_GYN2", "email": "itsemail@gmail.com", "password": "StrongPw1!", "companyId": 4 }                     |
+| Uzklausos struktura        | { "userName": string "email": string "password": string "companyId": int }                    |
 | Uzklausos header           | Authorization: Bearer {token}                                                                                                |
 | Reikalaujami Role          | Representative                                                                                                               |
 | Atsakymo kodas             | 201 - Created                                                                                                                |
-| Atsakymo struktura         | { "id": "056573e6-9a8f-4f0a-97b6-f6e13134ef1d", "userName": "Laurel57_GYN2", "email": "itsemail@gmail.com", "companyId": 4 } |
+| Atsakymo struktura         | { "id": string, "userName": string, "email": string, "companyId": int } | |
 | Kiti galimi atsakymo kodai | 400 - Bad Request ( Kai toks email arba username jau egzistuoja ), 401 - Unauthorized (Kai nera paduodamas jwt, arba jwt esanti role netinkama) |
 
 ### Priregistruoti Imones Atstova
@@ -82,11 +82,11 @@ JWT data:
 | :------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
 | Paskirtis                  | Uzregistruoti imones atstova                                                                                              |
 | Endpoint'o kelias          | /api/registerrepresentative                                                                                                          |
-| Uzklausos struktura        | { "userName": "Representative57_GYN", "email": "itsemail@gmail.com", "password": "StrongPw1!", "companyId": 4 }                     |
+| Uzklausos struktura        | { "userName": string "email": string "password": string "companyId": int }                     |
 | Uzklausos header           | Authorization: Bearer {token}                                                                                                |
 | Reikalaujami Role          | Admin                                                                                                               |
 | Atsakymo kodas             | 201 - Created                                                                                                                |
-| Atsakymo struktura         | { "id": "056573e6-9a8f-4f0a-97b6-f6e13134ef1d", "userName": "Representative57_GYN", "email": "itsemail@gmail.com", "companyId": 4 } |
+| Atsakymo struktura         | { "id": string, "userName": string, "email": string, "companyId": int } |
 | Kiti galimi atsakymo kodai | 400 - Bad Request ( Kai toks email arba username jau egzistuoja ), 401 - Unauthorized (Kai nera paduodamas jwt, arba jwt esanti role netinkama) |
 
 ### Prisijungti
@@ -94,9 +94,94 @@ JWT data:
 | :------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
 | Paskirtis                  | Sistemos naudotojui prisijungti ir gauti authToken                                                                           |
 | Endpoint'o kelias          | /api/login                                                                                                          |
-| Uzklausos struktura        | { "userName": "Admin", "password": "Admin1!" }                  |
+| Uzklausos struktura        | { "userName": string, "password": string }                  |
 | Uzklausos header           | -                                                                                               |
 | Reikalaujami Role          | -                                                                                                               |
 | Atsakymo kodas             | 200 - Ok                                                                                                                |
 | Atsakymo struktura         | { "accessToken": {token} } |
-| Kiti galimi atsakymo kodai | 400 - Bad Request ( Kai paduotas username nerandamas arba slaptazodis neatitinka ),  |
+| Kiti galimi atsakymo kodai | 400 - Bad Request ( Kai paduotas username nerandamas arba slaptazodis neatitinka )  |
+
+## Imonių API metodai
+### Gauti visas uzregistruotas imones
+| API metodas                | GetMany (GET)                                                                                                       |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| Paskirtis                  | Gauti visas uzregistruotas imones                                                                                            |
+| Endpoint'o kelias          | /api/companies                                                                                                          |
+| Uzklausos struktura        | -                     |
+| Uzklausos header           | Authorization: Bearer {token}                                                                                                |
+| Reikalaujami Role          | Admin                                                                                                               |
+| Atsakymo kodas             | 200 - Ok                                                                                                                |
+| Atsakymo struktura         | [ {"id": int, "name": string, "creationDate": date } ] |
+| Kiti galimi atsakymo kodai | 401 - Unauthorized (Kai nera paduodamas jwt, arba jwt esanti role netinkama) |
+
+### Gauti viena uzregistruota imone
+| API metodas                | Get (GET)                                                                                                       |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| Paskirtis                  | Gauti viena uzregistruota imone                                                                                           |
+| Endpoint'o kelias          | /api/companies/{companyId}                                                                                                |
+| Uzklausos struktura        | -                     |
+| Uzklausos header           | Authorization: Bearer {token}                                                                                                |
+| Reikalaujami Role          | -                                                                                                               |
+| Atsakymo kodas             | 200 - Ok                                                                                                                |
+| Atsakymo struktura         | {"id": int, "name": string, "creationDate": date } |
+| Kiti galimi atsakymo kodai | 401 - Unauthorized (Kai nera paduodamas jwt), 404 - Not Found (kai imone nerasta pagal id), 403 - Forbid (kai Uzklausoje paduotas imones id sutampa su uzsakovo imones, kuriai jis priklauso, id) |
+
+### Gauti visus imones darbuotojus
+| API metodas                | GetAllCompanyWorkers (GET)                                                                                                       |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| Paskirtis                  | Gauti visus imones darbuotojus                                                                                          |
+| Endpoint'o kelias          | /api/companies/{companyId}/GetAllCompanyWorkers                                                                           |
+| Uzklausos struktura        | -                     |
+| Uzklausos header           | Authorization: Bearer {token}                                                                                                |
+| Reikalaujami Role          | -                                                                                                               |
+| Atsakymo kodas             | 200 - Ok                                                                                                                |
+| Atsakymo struktura         | [ {"id": string, "userName": string, "email": string, "companyId": int } ] |
+| Kiti galimi atsakymo kodai | 401 - Unauthorized (Kai nera paduodamas jwt), 404 - Not Found (kai imone nerasta pagal id), 403 - Forbid (kai Uzklausoje paduotas imones id sutampa su uzsakovo imones, kuriai jis priklauso, id) |
+
+### Gauti visus imones darbus
+| API metodas                | GetAllWorks (GET)                                                                                                       |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| Paskirtis                  | Gauti visus imones darbus                                                                                          |
+| Endpoint'o kelias          | /api/companies/{companyId}/GetAllWorks                                                                           |
+| Uzklausos struktura        | -                     |
+| Uzklausos header           | Authorization: Bearer {token}                                                                                                |
+| Reikalaujami Role          | -                                                                                                               |
+| Atsakymo kodas             | 200 - Ok                                                                                                                |
+| Atsakymo struktura         | [ {"id": int, "type": string, "description": string, "creationDate": Date, "modifedDate": date, "startDateTime": date, "endDateTime": date, "IsPaused": boolean, "productionOrderId": int, "userId": string} ] |
+| Kiti galimi atsakymo kodai | 401 - Unauthorized (Kai nera paduodamas jwt), 404 - Not Found (kai imone nerasta pagal id), 403 - Forbid (kai Uzklausoje paduotas imones id sutampa su uzsakovo imones, kuriai jis priklauso, id) |
+
+### Sukurti imone
+| API metodas                | Create (POST)                                                                                                       |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| Paskirtis                  | Sukurti imone                                                                                        |
+| Endpoint'o kelias          | /api/companies                                                                           |
+| Uzklausos struktura        | { "Name": string }                    |
+| Uzklausos header           | Authorization: Bearer {token}                                                                                                |
+| Reikalaujami Role          | Admin                                                                                                               |
+| Atsakymo kodas             | 201 - Created                                                                                                                |
+| Atsakymo struktura         |  { "id": int, "name": string, "creationDate": date } |
+| Kiti galimi atsakymo kodai | 401 - Unauthorized (Kai nera paduodamas jwt ar kai jwt esanti role nesutamp su reikalaujancia ) |
+
+### Redaguoti imone
+| API metodas                | Update (PUT)                                                                                                       |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| Paskirtis                  | Redaguoti imones duomenis                                                                                        |
+| Endpoint'o kelias          | /api/companies/{companyId}                                                                           |
+| Uzklausos struktura        | { "Name": string }                    |
+| Uzklausos header           | Authorization: Bearer {token}                                                                                                |
+| Reikalaujami Role          | Admin                                                                                                               |
+| Atsakymo kodas             | 200 - Ok                                                                                                                |
+| Atsakymo struktura         | { "id": int, "name": string, "creationDate": date } |
+| Kiti galimi atsakymo kodai | 401 - Unauthorized (Kai nera paduodamas jwt ar kai jwt esanti role nesutamp su reikalaujancia ) |
+
+### Istrinti imone
+| API metodas                | Delete (DELETE)                                                                                                       |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| Paskirtis                  | Istrinti Imone                                                                                        |
+| Endpoint'o kelias          | /api/companies/{companyId}                                                                           |
+| Uzklausos struktura        | -                    |
+| Uzklausos header           | Authorization: Bearer {token}                                                                                                |
+| Reikalaujami Role          | Admin                                                                                                               |
+| Atsakymo kodas             | 204 - No Content                                                                                                                |
+| Atsakymo struktura         | - |
+| Kiti galimi atsakymo kodai | 401 - Unauthorized (Kai nera paduodamas jwt ar kai jwt esanti role nesutamp su reikalaujancia ) |
