@@ -185,3 +185,64 @@ JWT data:
 | Atsakymo kodas             | 204 - No Content                                                                                                                |
 | Atsakymo struktura         | - |
 | Kiti galimi atsakymo kodai | 401 - Unauthorized (Kai nera paduodamas jwt ar kai jwt esanti role nesutamp su reikalaujancia ) |
+
+## Production Orders API metodai
+### Gauti visus imones sukurtus gamybos uzsakymus
+| API metodas                | GetMany (GET)                                                                                                       |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| Paskirtis                  | Gauti visus vienos imones gamybos uzsakymus                                                                                           |
+| Endpoint'o kelias          | /api/companies/{companyId}/productionorders                                                                                     |
+| Uzklausos struktura        | -                     |
+| Uzklausos header           | Authorization: Bearer {token}                                                                                                |
+| Reikalaujami Role          | -                                                                                                               |
+| Atsakymo kodas             | 200 - Ok                                                                                                                |
+| Atsakymo struktura         | [ {"id": int, "productName": string, "creationDate": date, "modifiedDate" : date, "Startdatetime": date, "Enddatetime": date, "companyId": int } ] |
+| Kiti galimi atsakymo kodai | 401 - Unauthorized (Kai nera paduodamas jwt), 403 - Forbidden (kai uzsakovo imones id nesutampa su uzklausoje pateiktu imones id) |
+
+### Gauti viena imones sukurta gamybos uzsakyma
+| API metodas                | Get (GET)                                                                                                       |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| Paskirtis                  | Gauti visus vienos imones gamybos uzsakymus                                                                                           |
+| Endpoint'o kelias          | /api/companies/{companyId}/productionorders/{productionOrderId}                                                                  |
+| Uzklausos struktura        | -                     |
+| Uzklausos header           | Authorization: Bearer {token}                                                                                                |
+| Reikalaujami Role          | -                                                                                                               |
+| Atsakymo kodas             | 200 - Ok                                                                                                                |
+| Atsakymo struktura         | {"id": int, "productName": string, "creationDate": date, "modifiedDate" : date, "Startdatetime": date, "Enddatetime": date, "companyId": int } |
+| Kiti galimi atsakymo kodai | 401 - Unauthorized (Kai nera paduodamas jwt), 403 - Forbidden (kai uzsakovo imones id nesutampa su uzklausoje pateiktu imones id), 404 - (kai uzsakymas, su paduotu id, nerandamas) |
+
+### Sukurti gamybos uzsakyma
+| API metodas                | Create (POST)                                                                                                       |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| Paskirtis                  | Sukurti gamybos uzsakyma                                                                        |
+| Endpoint'o kelias          | /api/companies/{companyId}/productionorders                                                                          |
+| Uzklausos struktura        | { "productName": string, "description": string }                    |
+| Uzklausos header           | Authorization: Bearer {token}                                                                                                |
+| Reikalaujami Role          | Representative                                                                                                  |
+| Atsakymo kodas             | 201 - Created                                                                                                                |
+| Atsakymo struktura         | {"id": int, "productName": string, "creationDate": date, "modifiedDate" : date, "Startdatetime": date, "Enddatetime": date, "companyId": int } |
+| Kiti galimi atsakymo kodai | 401 - Unauthorized (Kai nera paduodamas jwt ar kai jwt esanti role nesutamp su reikalaujancia), 403 - Forbidden (kai uzsakovo imones id nesutampa su uzklausoje pateiktu imones id), 404 - (Kai paduotas companyId neegzistuoja duomenu bazeje) |
+
+### Redaguoti gamybos uzsakyma
+| API metodas                | Update (PUT)                                                                                                       |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| Paskirtis                  | Redaguoti gamybos uzsakymo duomenis                                                                                        |
+| Endpoint'o kelias          | /api/companies/{companyId}/productionOrders/{productionOrderId} |
+| Uzklausos struktura        | { "productName": string, "startDateTime": date, "endDateTime": date }                    |
+| Uzklausos header           | Authorization: Bearer {token}                                                                                                |
+| Reikalaujami Role          | Representative                                                                                                               |
+| Atsakymo kodas             | 200 - Ok                                                                                                                |
+| Atsakymo struktura         | { "id": int, "name": string, "creationDate": date } |
+| Kiti galimi atsakymo kodai | 401 - Unauthorized (Kai nera paduodamas jwt ar kai jwt esanti role nesutamp su reikalaujancia), 403 - Forbidden (kai uzsakovo imones id nesutampa su uzklausoje pateiktu imones id), 404 - (Kai paduotas companyId arba productionOrderId neegzistuoja duomenu bazeje) |
+
+### Istrinti gamybos uzsakyma
+| API metodas                | Delete (DELETE)                                                                                                       |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| Paskirtis                  | Istrinti gamybos uzsakyma                                                                                        |
+| Endpoint'o kelias          | /api/companies/{companyId}/productionOrders/{productionOrderId} |
+| Uzklausos struktura        | -                    |
+| Uzklausos header           | Authorization: Bearer {token}                                                                                                |
+| Reikalaujami Role          | Representative                                                                                                               |
+| Atsakymo kodas             | 204 - No Content                                                                                                                |
+| Atsakymo struktura         | - |
+| Kiti galimi atsakymo kodai | 401 - Unauthorized (Kai nera paduodamas jwt ar kai jwt esanti role nesutamp su reikalaujancia), 403 - Forbidden (kai uzsakovo imones id nesutampa su uzklausoje pateiktu imones id), 404 - (Kai paduotas companyId arba productionOrderId neegzistuoja duomenu bazeje) |
