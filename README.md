@@ -247,6 +247,55 @@ JWT data:
 | Atsakymo struktura         | - |
 | Kiti galimi atsakymo kodai | 401 - Unauthorized (Kai nera paduodamas jwt ar kai jwt esanti role nesutamp su reikalaujancia), 403 - Forbidden (kai uzsakovo imones id nesutampa su uzklausoje pateiktu imones id), 404 - (Kai paduotas companyId arba productionOrderId neegzistuoja duomenu bazeje) |
 
+## Works API metodai
+### Gauti visus vieno gamybos uzsakymo darbus
+| API metodas                | GetMany (GET)                                                                                                       |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| Paskirtis                  | Gauti visus vieno gamybos uzsakymo darbus                                                                                         |
+| Endpoint'o kelias          | /api/companies/{companyId}/productionorders/{productionOrderId}/Works                                                            |
+| Uzklausos struktura        | -                     |
+| Uzklausos header           | Authorization: Bearer {token}                                                                                                |
+| Reikalaujami Role          | -                                                                                                               |
+| Atsakymo kodas             | 200 - Ok                                                                                                                |
+| Atsakymo struktura         | [ {"id": int, "type": string, "description": string, "creationDate": date, "modifiedDate" : date, "Startdatetime": date, "Enddatetime": date, "isPaused": boolean, "productionOrderId": int, "userId": string } ] |
+| Kiti galimi atsakymo kodai | 401 - Unauthorized (Kai nera paduodamas jwt), 403 - Forbidden (kai uzsakovo imones id nesutampa su uzklausoje pateiktu imones id) |
+
+### Sukurti gamybos uzsakymo darba
+| API metodas                | Create (POST)                                                                                                       |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| Paskirtis                  | Sukurti gamybos uzsakymo darba                                                                     |
+| Endpoint'o kelias          | /api/companies/{companyId}/productionorders/{productionOrderId}/Works                                                     
+| Uzklausos struktura        | { "productName": string, "description": string }                    |
+| Uzklausos header           | Authorization: Bearer {token}                                                                                                |
+| Reikalaujami Role          | Representative                                                                                                  |
+| Atsakymo kodas             | 201 - Created                                                                                                                |
+| Atsakymo struktura         | {"id": int, "type": string, "description": string, "creationDate": date, "modifiedDate" : date, "Startdatetime": date, "Enddatetime": date, "isPaused": boolean, "productionOrderId": int, "userId": string } |
+| Kiti galimi atsakymo kodai | 401 - Unauthorized (Kai nera paduodamas jwt ar kai jwt esanti role nesutamp su reikalaujancia), 403 - Forbidden (kai uzsakovo imones id nesutampa su uzklausoje pateiktu imones id), 404 - (Kai paduotas companyId arba productionOrderId neegzistuoja duomenu bazeje) |
+
+### Redaguoti gamybos uzsakymo darba
+| API metodas                | Update (PUT)                                                                                                       |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| Paskirtis                  | Redaguoti gamybos uzsakymo darba                                                                                       |
+| Endpoint'o kelias          | /api/companies/{companyId}/productionOrders/{productionOrderId}/works/{workId} |
+| Uzklausos struktura        | { "type": string, "description": string, "startDateTime": date, "endDateTime": date, "ispaused": boolean }                    |
+| Uzklausos header           | Authorization: Bearer {token}                                                                                                |
+| Reikalaujami Role          | -                                                                                                               |
+| Atsakymo kodas             | 200 - Ok                                                                                                                |
+| Atsakymo struktura         | {"id": int, "type": string, "description": string, "creationDate": date, "modifiedDate" : date, "Startdatetime": date, "Enddatetime": date, "isPaused": boolean, "productionOrderId": int, "userId": string } |
+| Kiti galimi atsakymo kodai | 401 - Unauthorized (Kai nera paduodamas jwt ar kai jwt esanti role nesutamp su reikalaujancia), 403 - Forbidden (kai uzsakovo imones id nesutampa su uzklausoje pateiktu imones id), 404 - (Kai paduotas companyId arba productionOrderId arba workId neegzistuoja duomenu bazeje) |
+
+### Istrinti gamybos uzsakymo darba
+| API metodas                | Delete (DELETE)                                                                                                       |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| Paskirtis                  | Istrinti gamybos uzsakymo darba                                                                                        |
+| Endpoint'o kelias          | /api/companies/{companyId}/productionOrders/{productionOrderId}/works/{workId} |
+| Uzklausos struktura        | -                    |
+| Uzklausos header           | Authorization: Bearer {token}                                                                                                |
+| Reikalaujami Role          | Representative                                                                                                               |
+| Atsakymo kodas             | 204 - No Content                                                                                                                |
+| Atsakymo struktura         | - |
+| Kiti galimi atsakymo kodai | 401 - Unauthorized (Kai nera paduodamas jwt ar kai jwt esanti role nesutamp su reikalaujancia), 403 - Forbidden (kai uzsakovo imones id nesutampa su uzklausoje pateiktu imones id), 404 - (Kai paduotas companyId arba productionOrderId arba workId neegzistuoja duomenu bazeje) |
+
 
 # Naudotojo sąsajos projektas
 ## Bendra sąsaja
