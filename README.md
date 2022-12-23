@@ -246,3 +246,42 @@ JWT data:
 | Atsakymo kodas             | 204 - No Content                                                                                                                |
 | Atsakymo struktura         | - |
 | Kiti galimi atsakymo kodai | 401 - Unauthorized (Kai nera paduodamas jwt ar kai jwt esanti role nesutamp su reikalaujancia), 403 - Forbidden (kai uzsakovo imones id nesutampa su uzklausoje pateiktu imones id), 404 - (Kai paduotas companyId arba productionOrderId neegzistuoja duomenu bazeje) |
+
+
+# Naudotojo sąsajos projektas
+## Bendra sąsaja
+### Prisijungimas
+![image](https://user-images.githubusercontent.com/43381869/209376330-ac9ecc54-3758-46b6-9bb9-b979ba163f31.png)
+## Administratoriaus sąsaja
+### Imones atstovo registracija
+![image](https://user-images.githubusercontent.com/43381869/209376316-7f188843-80cf-4c93-8ef9-3cb58300333a.png)
+
+### Imoniu perziuros puslapis
+![image](https://user-images.githubusercontent.com/43381869/209376471-575588f5-bc69-4d41-a3c9-5d224dc93555.png)
+
+### Imones kurimo modalas
+![image](https://user-images.githubusercontent.com/43381869/209376522-119d179a-46b4-45b8-b823-e17e39e77bf0.png)
+
+## Imones atstovo sąsaja
+### Imones darbuotojo registracija
+![image](https://user-images.githubusercontent.com/43381869/209376633-22608e44-71f9-4685-8543-7471d1a6e4ad.png)
+
+### Gamybos uzsakymu perziura
+
+![image](https://user-images.githubusercontent.com/43381869/209376723-fa97d6e4-b17e-4b3e-b24c-c7a55c33753e.png)
+
+### Gamybos uzsakymo darbu perziura
+
+![image](https://user-images.githubusercontent.com/43381869/209376820-7b586f60-d248-4f28-9424-a731daa11474.png)
+
+### Darbo redagavimo modalas
+
+![image](https://user-images.githubusercontent.com/43381869/209376969-fd55def3-373d-4892-b9d3-5548fcdbdab5.png)
+
+## Darbuotojo sąsaja
+
+### Darbuotojui skirtu darbu perziura
+
+![image](https://user-images.githubusercontent.com/43381869/209377444-95e79119-5800-446b-8314-90462d8860a2.png)
+
+
